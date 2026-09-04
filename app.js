@@ -261,7 +261,7 @@
     if (!w) return;
     const m = w.meta;
     $('pv-title').textContent = `${m.icon} ${m.name}`;
-    const row = (ex, dur, i) => `<div class="pv-ex"><span class="num">${i + 1}</span><span class="fig-thumb" data-ex="${ex.id}"></span><div class="body"><b>${esc(ex.name)}</b><span>${CAT_NAMES[ex.cat]} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span></div><span class="dur">${dur}″</span></div>`;
+    const row = (ex, dur, i) => `<div class="pv-ex" tabindex="0"><span class="num">${i + 1}</span><div class="body"><b>${esc(ex.name)}</b><span>${CAT_NAMES[ex.cat]} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span><div class="how"><ol class="steps">${ex.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(ex.tip)}</p></div></div><span class="dur">${dur}″</span></div>`;
     $('pv-body').innerHTML = `
       <div class="pv-summary">
         <div><b>${m.durationMin}</b><span>דקות</span></div>
@@ -274,7 +274,10 @@
       <div class="pv-section"><h3>עיקר האימון <small>${m.rounds} סבבים × ${m.exercises.length} תרגילים${m.finisher ? ` + סבב סיום של ${m.finisher}` : ''}, ${m.roundRest}″ מנוחה בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
       <div class="pv-section"><h3>שחרור ומתיחות</h3>${w.segments.filter((s) => s.kind === 'cooldown').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
       <div class="sticky-bottom"><button class="btn primary block" id="pv-start">התחלת אימון ▶</button></div>`;
-    fillThumbs($('pv-body'));
+    $('pv-body').querySelectorAll('.pv-ex').forEach((el) => {
+      el.onclick = () => el.classList.toggle('open');
+      el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); } };
+    });
     $('pv-start').onclick = () => startWorkout(dateStr, dayType);
     $('pv-back').onclick = () => show(prevScreen);
     show('preview');
@@ -338,19 +341,19 @@
     $('pl-kind').textContent = KIND_LABEL[s.kind] + (s.round ? ` · סבב ${s.round}/${s.rounds}` : '');
     $('pl-phase').textContent = s.phase + (s.idx ? ` · תרגיל ${s.idx}/${s.of}` : '');
     $('pl-side').hidden = true;
-    setFigure(s.ex || s.next || (segs[i + 1] && segs[i + 1].ex));
+    const upcoming = s.next || (segs[i + 1] && segs[i + 1].ex) || (segs[i + 2] && segs[i + 2].ex) || null;
     if (s.ex) {
       $('pl-ex').textContent = s.ex.name;
       $('pl-meta').textContent = `${CAT_NAMES[s.ex.cat]} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
-      $('pl-desc').textContent = s.ex.desc;
+      setHow(s.ex, false);
       speak(s.ex.name);
     } else {
       $('pl-ex').textContent = s.kind === 'prep' ? 'מוכנים?' : 'מנוחה';
       $('pl-meta').textContent = s.kind === 'prep' ? 'עמדו על המזרן, נשמו עמוק' : 'נשמו, שתו מים אם צריך';
-      $('pl-desc').textContent = s.next ? s.next.desc : '';
+      setHow(upcoming, true);
       if (s.kind !== 'prep') speak('מנוחה');
     }
-    const next = s.next || (segs[i + 1] && segs[i + 1].ex) || (segs[i + 2] && segs[i + 2].ex);
+    const next = upcoming;
     $('pl-next').innerHTML = next && next !== s.ex ? `הבא: <b>${esc(next.name)}</b>` : (i === segs.length - 1 ? 'זהו — התרגיל האחרון!' : '');
     $('pl-next').hidden = !$('pl-next').innerHTML;
     if (s.kind === 'work') { beep(1046, 0.25, 0.35); vibrate(120); }
@@ -359,15 +362,11 @@
     renderTime(s.dur);
   }
 
-  let curFig = null;
-  function setFigure(ex) {
-    const box = $('pl-fig');
-    if (curFig && curFig.stop) curFig.stop();
-    box.innerHTML = '';
-    curFig = null;
-    if (!ex || !window.FIGURES) return;
-    curFig = window.FIGURES.create(ex, { animate: true });
-    box.appendChild(curFig);
+  function setHow(ex, upcoming) {
+    $('pl-steps').innerHTML = ex ? ex.steps.map((t) => `<li>${esc(t)}</li>`).join('') : '';
+    $('pl-tip').textContent = ex ? ex.tip : '';
+    $('pl-tip').hidden = !ex;
+    $('pl-steps').classList.toggle('preview', !!upcoming);
   }
 
   function tick() {
@@ -413,7 +412,6 @@
 
   function finishWorkout(completed) {
     clearInterval(player.timer); player.timer = null; player.active = false; releaseWake();
-    if (curFig && curFig.stop) curFig.stop();
     const w = player.workout; const wi = weekInfo(player.date);
     const doneSec = completed ? w.meta.plannedSec : player.doneSec;
     const minRecord = 60; // פחות מדקה לא נרשם
@@ -493,31 +491,11 @@
     $('lib-chips').innerHTML = cats.map((c) => `<button class="${c === libCat ? 'active' : ''}" data-c="${c}">${c === 'all' ? 'הכל' : CAT_NAMES[c]}</button>`).join('');
     $('lib-chips').querySelectorAll('button').forEach((b) => { b.onclick = () => { libCat = b.dataset.c; renderLibrary(); }; });
     const q = ($('lib-search').value || '').trim();
-    const list = EX.filter((e) => (libCat === 'all' || e.cat === libCat) && (!q || e.name.includes(q) || e.muscles.includes(q) || e.desc.includes(q)));
-    $('lib-list').innerHTML = list.length ? list.map((e) => `<details class="lib-ex" data-id="${e.id}"><summary><span class="fig-thumb" data-ex="${e.id}"></span><b>${esc(e.name)}</b><span class="lvl">${P.LEVELS[e.level]}</span><span class="lvl">${CAT_NAMES[e.cat]}</span></summary><div class="fig-open"></div><p>${esc(e.desc)}</p><div class="m">שרירים: ${esc(e.muscles)}${e.sides ? ' · תרגיל חד‑צדדי' : ''}</div></details>`).join('') : '<p class="empty">לא נמצאו תרגילים</p>';
-    fillThumbs($('lib-list'));
-    $('lib-list').querySelectorAll('details').forEach((d) => {
-      d.addEventListener('toggle', () => {
-        const box = d.querySelector('.fig-open');
-        if (box.fig && box.fig.stop) box.fig.stop();
-        box.innerHTML = '';
-        if (!d.open) return;
-        const ex = EX.find((x) => x.id === d.dataset.id);
-        box.fig = window.FIGURES.create(ex, { animate: true });
-        box.appendChild(box.fig);
-      });
-    });
+    const hay = (e) => `${e.name} ${e.muscles} ${e.steps.join(' ')} ${e.tip}`;
+    const list = EX.filter((e) => (libCat === 'all' || e.cat === libCat) && (!q || hay(e).includes(q)));
+    $('lib-list').innerHTML = list.length ? list.map((e) => `<details class="lib-ex"><summary><b>${esc(e.name)}</b><span class="lvl">${P.LEVELS[e.level]}</span><span class="lvl">${CAT_NAMES[e.cat]}</span></summary><ol class="steps">${e.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(e.tip)}</p><div class="m">שרירים: ${esc(e.muscles)}${e.sides ? ' · תרגיל חד‑צדדי' : ''}</div></details>`).join('') : '<p class="empty">לא נמצאו תרגילים</p>';
   }
   $('lib-search').addEventListener('input', renderLibrary);
-
-  function fillThumbs(root) {
-    if (!window.FIGURES) return;
-    root.querySelectorAll('.fig-thumb[data-ex]').forEach((el) => {
-      if (el.firstChild) return;
-      const ex = EX.find((x) => x.id === el.dataset.ex);
-      if (ex) el.appendChild(window.FIGURES.create(ex, {}));
-    });
-  }
 
   /* ---------- הגדרות ---------- */
   function renderSettings() {

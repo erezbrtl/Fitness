@@ -116,7 +116,7 @@ input[type=search] { width: 100%; padding: .75rem 1rem; border-radius: 14px; bor
 .player-top { display: flex; align-items: center; gap: 10px; }
 .player-title { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
 .player-title span { font-size: .8rem; }
-.player-total { font-variant-numeric: tabular-nums; font-size: .9rem; color: var(--muted); }
+.player-total { font-variant-numeric: tabular-nums; font-size: .9rem; color: var(--muted); direction: ltr; }
 .progress-track { height: 6px; background: var(--bg2); border-radius: 999px; margin: 10px 0 6px; overflow: hidden; }
 .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .3s linear; }
 .player-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; overflow-y: auto; }
@@ -224,22 +224,25 @@ input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--accent); }
 
 .empty { text-align: center; color: var(--muted); padding: 20px 0; }
 
-/* ---- איורי תרגילים ---- */
-.figure { width: 100%; height: 100%; display: block; overflow: visible; }
-.fig-limb, .fig-torso { fill: none; stroke: var(--fig, #e8eef9); stroke-linecap: round; stroke-linejoin: round; }
-.fig-torso { stroke-width: 11; }
-.fig-head { fill: var(--fig, #e8eef9); }
-.fig-far { opacity: .34; }
-.fig-mat { stroke: var(--fig-mat, #38bdf8); stroke-width: 3; stroke-linecap: round; opacity: .5; }
-
-.fig-box { width: min(88vw, 340px); height: 152px; flex-shrink: 0; }
-.player .timer-ring { width: min(46vw, 190px); margin: 2px 0; }
-.player .ex-desc { font-size: .9rem; max-width: 36ch; }
-.pv-ex .fig-thumb { width: 62px; height: 44px; flex-shrink: 0; opacity: .9; }
-.lib-ex .fig-thumb { width: 58px; height: 40px; flex-shrink: 0; }
-.lib-ex .fig-open { width: 100%; height: 140px; margin-top: 6px; background: var(--bg2); border-radius: 12px; }
 
 input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; border: 1px solid #263353; background: var(--bg2); color: var(--text); font-size: 1rem; font-family: inherit; }
 .countdown { text-align: center; }
 .countdown .big { font-size: 2.6rem; font-weight: 900; line-height: 1.1; }
 .countdown .lbl { color: var(--muted); }
+
+/* ---- הסבר ביצוע ---- */
+.steps { margin: 4px 0 0; padding: 0; list-style: none; counter-reset: st; display: flex; flex-direction: column; gap: 7px; text-align: right; max-width: 42ch; }
+.steps li { counter-increment: st; position: relative; padding-inline-start: 30px; font-size: .95rem; line-height: 1.4; color: #d6dfef; }
+.steps li::before { content: counter(st); position: absolute; inset-inline-start: 0; top: 1px; width: 21px; height: 21px; border-radius: 50%; background: var(--card2); color: var(--accent); font-size: .74rem; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.tip { display: flex; gap: 8px; align-items: flex-start; text-align: right; font-size: .9rem; line-height: 1.4; color: #ffdba8; background: rgba(245,158,11,.12); border-inline-start: 3px solid var(--warn); border-radius: 10px; padding: 9px 11px; margin: 10px 0 0; max-width: 42ch; }
+.tip::before { content: "💡"; flex-shrink: 0; }
+.player .steps { max-width: 40ch; }
+.player .steps li { font-size: .92rem; }
+.player .timer-ring { width: min(44vw, 178px); margin: 2px 0 4px; }
+.pv-ex { cursor: pointer; }
+.pv-ex .body .how { display: none; }
+.pv-ex.open .body .how { display: block; }
+.pv-ex.open { align-items: flex-start; }
+.lib-ex .steps, .lib-ex .tip { margin-top: 8px; }
+
+.steps.preview { opacity: .72; }
