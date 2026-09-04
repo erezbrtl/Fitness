@@ -74,6 +74,36 @@
         <p class="muted small">🟢 אימון הושלם &nbsp; 🟡 אימון חלקי &nbsp; ⚪ יום אימון שהוחמץ</p>
       </div>
       <div class="card">
+        <div class="cal-head">
+          <h3>מדידות גוף</h3>
+          <div class="seg small-seg" id="meas-toggle">
+            <button data-v="waist" class="active">היקף מותן</button>
+            <button data-v="weight">משקל</button>
+          </div>
+        </div>
+        <div id="meas-chart"></div>
+        <div id="meas-summary"></div>
+        <form class="inline-form" id="meas-form">
+          <label>היקף מותן (ס״מ)<input type="number" id="meas-waist" step="0.5" min="40" max="200" inputmode="decimal" placeholder="לדוגמה 92" /></label>
+          <label>משקל (ק״ג)<input type="number" id="meas-weight" step="0.1" min="30" max="250" inputmode="decimal" placeholder="לדוגמה 84.5" /></label>
+          <button class="btn primary" type="submit">שמירת מדידה</button>
+        </form>
+        <p class="muted small">מדדו בבוקר, לפני האוכל. היקף המותן נמדד בגובה הטבור, בלי לשאוף פנימה. פעם בשבוע מספיק — שינויים יומיים הם רעש.</p>
+      </div>
+
+      <div class="card">
+        <h3>מבחן כושר</h3>
+        <p class="muted small">פעם בחודש, ביום מנוחה. נוחו דקה בין תרגיל לתרגיל ובצעו כל אחד עד הסוף.</p>
+        <div id="test-results"></div>
+        <form class="inline-form" id="test-form">
+          <label>מקסימום שכיבות סמיכה<input type="number" id="test-pushups" min="0" max="300" inputmode="numeric" /></label>
+          <label>פלאנק — שניות<input type="number" id="test-plank" min="0" max="900" inputmode="numeric" /></label>
+          <label>סקוואטים בדקה<input type="number" id="test-squats" min="0" max="200" inputmode="numeric" /></label>
+          <button class="btn primary" type="submit">שמירת תוצאות</button>
+        </form>
+      </div>
+
+      <div class="card">
         <h3>היסטוריה</h3>
         <div id="history-list"></div>
       </div>
@@ -170,6 +200,7 @@
         <div class="kind-badge" id="pl-kind"></div>
         <div class="ex-name" id="pl-ex"></div>
         <div class="ex-meta" id="pl-meta"></div>
+        <button class="swap-btn" id="pl-swap" hidden>🔁 החלפת תרגיל</button>
         <div class="timer-ring">
           <svg viewBox="0 0 120 120">
             <circle class="ring-bg" cx="60" cy="60" r="54" />

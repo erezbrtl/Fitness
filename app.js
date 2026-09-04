@@ -34,7 +34,11 @@
     startDate: nextSunday(), // תחילת המחזור — כברירת מחדל יום ראשון הקרוב
     cycle: 1,
     sessions: [],          // { id, date, dayType, week, cycle, plannedSec, doneSec, completed, level }
+    measures: [],          // { date, waist, weight }
+    tests: [],             // { date, pushups, plankSec, squats }
     levelPrompted: {},     // מחזורים שכבר הוצעה בהם העלאת רמה
+    quick: null,           // אימון קצר להיום בלבד { date, duration }
+    backupAt: 0,           // מספר האימונים שהושלמו בגיבוי האחרון
   });
   let state = load();
 
@@ -44,6 +48,8 @@
       if (!raw) return defaults();
       const s = Object.assign(defaults(), JSON.parse(raw));
       s.settings = Object.assign(defaults().settings, s.settings || {});
+      if (!Array.isArray(s.measures)) s.measures = [];
+      if (!Array.isArray(s.tests)) s.tests = [];
       return s;
     } catch { return defaults(); }
   }
@@ -67,13 +73,17 @@
     const weekIdx = Math.floor(diff / 7);
     return { week: (weekIdx % 4) + 1, cycle: state.cycle + Math.floor(weekIdx / 4) };
   }
+  function durationFor(dateStr) {
+    const q = state.quick;
+    return (q && q.date === dateStr) ? q.duration : state.settings.duration;
+  }
   function workoutFor(dateStr, dayTypeOverride) {
     const dayType = dayTypeOverride || dayTypeFor(dateStr);
     if (dayType === 'rest') return null;
     const wi = weekInfo(dateStr);
     return P.buildWorkout({
       dayType, level: state.settings.level, week: wi.week,
-      durationMin: state.settings.duration, seed: `${weekStart(dateStr)}|${wi.cycle}`,
+      durationMin: durationFor(dateStr), seed: `${weekStart(dateStr)}|${wi.cycle}`,
     });
   }
   function sessionsOn(dateStr) { return state.sessions.filter((s) => s.date === dateStr); }
@@ -153,6 +163,9 @@
     if (w) {
       html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.rounds}${w.meta.finisher ? '+' : ''} סבבים</span><span class="tag">⚡ ${w.meta.work}″ עבודה / ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
       html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'} ▶</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
+      const cur = durationFor(t);
+      const opts = [...new Set([10, 15, 20, 30, state.settings.duration])].sort((x, y) => x - y);
+      html += `<div class="quick"><span>היום יש לי:</span>${opts.map((m) => `<button data-min="${m}" class="${m === cur ? 'active' : ''}">${m} דק׳</button>`).join('')}</div>`;
     } else {
       html += `<p class="muted">היום יום מנוחה. הגוף בונה שריר בזמן המנוחה — תנו לו את זה. אם בכל זאת מתחשק, אפשר לבחור אימון מהתוכנית.</p>`;
       html += `<div class="btn-row"><button class="btn secondary" id="btn-choose">בחירת אימון אחר</button></div>`;
@@ -161,7 +174,15 @@
     if (w) {
       $('btn-start-today').onclick = () => startWorkout(t, dayType);
       $('btn-preview-today').onclick = () => showPreview(t, dayType);
+      $('today-card').querySelectorAll('.quick button').forEach((b) => {
+        b.onclick = () => {
+          const m = Number(b.dataset.min);
+          state.quick = m === state.settings.duration ? null : { date: t, duration: m };
+          save(); renderHome();
+        };
+      });
     } else $('btn-choose').onclick = () => show('plan');
+    renderBackupNote();
 
     // רצועת השבוע
     const ws = weekStart(t);
@@ -181,7 +202,9 @@
     $('cycle-card').innerHTML = `<h3>מחזור ${wi.cycle} · שבוע ${wi.week} מתוך 4 — ${mods.label}</h3>
       <div class="cycle-bar"><div style="width:${Math.round((dayInCycle + 1) / 28 * 100)}%"></div></div>
       <div class="week-pills">${[1, 2, 3, 4].map((k) => `<span class="${k === wi.week ? 'cur' : k < wi.week ? 'past' : ''}">שבוע ${k}</span>`).join('')}</div>
-      <p class="muted small" style="margin-top:8px">${wi.week === 4 ? 'שבוע שיא: עבודה ארוכה, מנוחה קצרה ווריאציות קשות. אחריו מתחיל מחזור חדש.' : 'עומס העבודה עולה משבוע לשבוע. שמרו על טכניקה ונשימה.'}</p>`;
+      <p class="muted small" style="margin-top:8px">${wi.week === 4 ? 'שבוע שיא: עבודה ארוכה, מנוחה קצרה ווריאציות קשות. אחריו מתחיל מחזור חדש.' : 'עומס העבודה עולה משבוע לשבוע. שמרו על טכניקה ונשימה.'}</p>
+      ${testDue(t) ? `<div class="btn-row"><button class="btn secondary" id="btn-go-test">${state.tests.length ? 'הגיע הזמן למבחן כושר' : 'לבצע מבחן כושר ראשון'}</button></div>` : ''}`;
+    if (testDue(t)) $('btn-go-test').onclick = () => show('progress');
 
     maybeSuggestLevelUp(wi);
   }
@@ -218,6 +241,27 @@
     $('cycle-card').innerHTML = `<h3>מה עומד לקרות</h3>
       <p class="muted small">מחזור של 4 שבועות: שבוע 1 בסיס, שבוע 2 עלייה בעומס, שבוע 3 עומס גבוה, שבוע 4 שיא. בסוף המחזור התוכנית מציעה לעלות רמה, ומתחילה מחזור חדש.</p>
       <div class="week-pills">${[1, 2, 3, 4].map((k) => `<span class="${k === 1 ? 'cur' : ''}">שבוע ${k}</span>`).join('')}</div>`;
+  }
+
+  /* מבחן כושר: פעם ב‑28 יום */
+  function testDue(t) {
+    if (!state.tests.length) return state.sessions.some((s) => s.completed);
+    const last = state.tests.map((x) => x.date).sort().pop();
+    return daysBetween(last, t) >= 28;
+  }
+
+  const BACKUP_EVERY = 10;
+  function renderBackupNote() {
+    const host = $('today-card');
+    const old = document.getElementById('backup-note');
+    if (old) old.remove();
+    const done = state.sessions.filter((s) => s.completed).length;
+    if (done - (state.backupAt || 0) < BACKUP_EVERY) return;
+    const note = document.createElement('div');
+    note.className = 'backup-note'; note.id = 'backup-note';
+    note.innerHTML = `<p>הנתונים שלכם שמורים רק בדפדפן הזה. ניקוי נתוני גלישה או הסרת האפליקציה ימחק ${done} אימונים.</p><button>גיבוי עכשיו</button>`;
+    note.querySelector('button').onclick = () => exportBackup();
+    host.parentNode.insertBefore(note, host);
   }
 
   function maybeSuggestLevelUp(wi) {
@@ -311,7 +355,10 @@
   let wakeLock = null;
   async function requestWake() { if (!state.settings.wake || !('wakeLock' in navigator)) return; try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} }
   function releaseWake() { try { wakeLock && wakeLock.release(); } catch {} wakeLock = null; }
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && player.active && !player.paused) requestWake(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !player.active || player.paused) return;
+    requestWake(); tick();
+  });
 
   /* ---------- נגן ---------- */
   const player = { active: false, paused: false, workout: null, idx: 0, segStart: 0, pausedAt: 0, timer: null, lastWhole: -1, sideDone: false, doneSec: 0, date: null, dayType: null };
@@ -331,36 +378,59 @@
   }
   function segElapsedBefore(i) { let a = 0; for (let k = 0; k < i; k++) a += player.workout.segments[k].dur; return a; }
 
-  function enterSegment(i) {
+  function enterSegment(i, opts) {
+    opts = opts || {};
     const segs = player.workout.segments;
     if (i >= segs.length) return finishWorkout(true);
-    player.idx = i; player.segStart = performance.now(); player.lastWhole = -1; player.sideDone = false;
+    player.idx = i; player.segStart = performance.now() - (opts.elapsed || 0) * 1000;
+    player.lastWhole = -1; player.sideDone = false;
     const s = segs[i];
     const pl = $('screen-player');
     pl.className = `screen player active mode-${s.kind}${player.paused ? ' paused' : ''}`;
     $('pl-kind').textContent = KIND_LABEL[s.kind] + (s.round ? ` · סבב ${s.round}/${s.rounds}` : '');
     $('pl-phase').textContent = s.phase + (s.idx ? ` · תרגיל ${s.idx}/${s.of}` : '');
     $('pl-side').hidden = true;
+    $('pl-swap').hidden = !s.ex;
     const upcoming = s.next || (segs[i + 1] && segs[i + 1].ex) || (segs[i + 2] && segs[i + 2].ex) || null;
     if (s.ex) {
       $('pl-ex').textContent = s.ex.name;
       $('pl-meta').textContent = `${CAT_NAMES[s.ex.cat]} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
       setHow(s.ex, false);
-      speak(s.ex.name);
+      if (!opts.silent) speak(s.ex.name);
     } else {
       $('pl-ex').textContent = s.kind === 'prep' ? 'מוכנים?' : 'מנוחה';
       $('pl-meta').textContent = s.kind === 'prep' ? 'עמדו על המזרן, נשמו עמוק' : 'נשמו, שתו מים אם צריך';
       setHow(upcoming, true);
-      if (s.kind !== 'prep') speak('מנוחה');
+      if (s.kind !== 'prep' && !opts.silent) speak('מנוחה');
     }
     const next = upcoming;
     $('pl-next').innerHTML = next && next !== s.ex ? `הבא: <b>${esc(next.name)}</b>` : (i === segs.length - 1 ? 'זהו — התרגיל האחרון!' : '');
     $('pl-next').hidden = !$('pl-next').innerHTML;
-    if (s.kind === 'work') { beep(1046, 0.25, 0.35); vibrate(120); }
-    else if (s.kind === 'rest' || s.kind === 'roundrest') { beep(523, 0.2); }
-    else if (s.kind !== 'prep') beep(700, 0.12);
+    if (!opts.silent) {
+      if (s.kind === 'work') { beep(1046, 0.25, 0.35); vibrate(120); }
+      else if (s.kind === 'rest' || s.kind === 'roundrest') { beep(523, 0.2); }
+      else if (s.kind !== 'prep') beep(700, 0.12);
+    }
     renderTime(s.dur);
   }
+
+  function swapCurrent() {
+    const s = player.workout.segments[player.idx];
+    const ex = s.ex;
+    if (!ex) return;
+    const used = new Set(player.workout.segments.filter((x) => x.ex).map((x) => x.ex.id));
+    let pool = EX.filter((e) => e.cat === ex.cat && e.level <= state.settings.level && !used.has(e.id));
+    if (!pool.length) pool = EX.filter((e) => e.cat === ex.cat && e.level <= state.settings.level && e.id !== ex.id);
+    if (!pool.length) return;
+    const rep = pool[Math.floor(Math.random() * pool.length)];
+    player.workout.segments.forEach((x) => { if (x.ex === ex) x.ex = rep; if (x.next === ex) x.next = rep; });
+    const m = player.workout.meta;
+    m.exercises = m.exercises.map((e) => (e === ex ? rep : e));
+    m.warmup = m.warmup.map((e) => (e === ex ? rep : e));
+    const el = (performance.now() - player.segStart) / 1000;
+    enterSegment(player.idx, { silent: true, elapsed: Math.min(el, 2) });
+  }
+  $('pl-swap').onclick = swapCurrent;
 
   function setHow(ex, upcoming) {
     $('pl-steps').innerHTML = ex ? ex.steps.map((t) => `<li>${esc(t)}</li>`).join('') : '';
@@ -371,8 +441,18 @@
 
   function tick() {
     if (player.paused) return;
-    const s = player.workout.segments[player.idx];
-    const el = (performance.now() - player.segStart) / 1000;
+    const segs = player.workout.segments;
+    let s = segs[player.idx];
+    let el = (performance.now() - player.segStart) / 1000;
+    // האפליקציה הייתה מושהית (מסך כבוי / מעבר לאפליקציה אחרת) — קופצים ישר למקטע הנכון, בשקט
+    if (el > s.dur + 1.5) {
+      let i = player.idx;
+      while (i < segs.length && el >= segs[i].dur) { el -= segs[i].dur; i++; }
+      if (i >= segs.length) return finishWorkout(true);
+      enterSegment(i, { silent: true, elapsed: el });
+      s = segs[player.idx];
+      el = (performance.now() - player.segStart) / 1000;
+    }
     const remain = Math.max(0, s.dur - el);
     const whole = Math.ceil(remain);
     if (whole !== player.lastWhole) {
@@ -446,6 +526,70 @@
   const tip = () => TIPS[Math.floor(Math.random() * TIPS.length)];
 
   /* ---------- התקדמות ---------- */
+  /* גרף קו פשוט לסדרת מדידות */
+  function lineChart(points, unit) {
+    if (points.length < 2) return `<p class="empty">${points.length ? 'עוד מדידה אחת והגרף יופיע' : 'אין עדיין מדידות'}</p>`;
+    const W = 300, H = 118, PL = 30, PR = 6, PT = 10, PB = 18;
+    const vals = points.map((p) => p.v);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (hi - lo < 1) { lo -= 1; hi += 1; }
+    const pad = (hi - lo) * 0.15; lo -= pad; hi += pad;
+    const x = (i) => PL + (i / (points.length - 1)) * (W - PL - PR);
+    const y = (v) => PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB);
+    const line = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p.v).toFixed(1)}`).join('');
+    const area = `${line}L${x(points.length - 1).toFixed(1)} ${H - PB}L${x(0).toFixed(1)} ${H - PB}Z`;
+    const dots = points.map((p, i) => `<circle class="dot" cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="3"/>`).join('');
+    const first = fromIso(points[0].date), last = fromIso(points[points.length - 1].date);
+    const fd = (d) => `${d.getDate()}/${d.getMonth() + 1}`;
+    return `<svg class="line-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="גרף מדידות">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#38bdf8" stop-opacity=".35"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+      </linearGradient></defs>
+      <line class="grid" x1="${PL}" y1="${PT}" x2="${W - PR}" y2="${PT}"/>
+      <line class="grid" x1="${PL}" y1="${H - PB}" x2="${W - PR}" y2="${H - PB}"/>
+      <path class="area" d="${area}"/><path class="line" d="${line}"/>${dots}
+      <text class="lbl" x="${PL - 4}" y="${PT + 4}" text-anchor="end">${hi.toFixed(1)}</text>
+      <text class="lbl" x="${PL - 4}" y="${H - PB}" text-anchor="end">${lo.toFixed(1)}</text>
+      <text class="lbl" x="${x(0)}" y="${H - 5}" text-anchor="middle">${fd(first)}</text>
+      <text class="lbl" x="${x(points.length - 1)}" y="${H - 5}" text-anchor="middle">${fd(last)}</text>
+    </svg>`;
+  }
+
+  const deltaHtml = (cur, prev, unit, lowerIsBetter) => {
+    if (prev == null || cur == null) return '';
+    const d = +(cur - prev).toFixed(1);
+    if (d === 0) return `<span class="delta same">ללא שינוי</span>`;
+    const good = lowerIsBetter ? d < 0 : d > 0;
+    return `<span class="delta ${good ? 'down' : 'up'}">${d > 0 ? '+' : '−'}${Math.abs(d)}${unit}</span>`;
+  };
+
+  let measMetric = 'waist';
+  function renderMeasures() {
+    const sorted = state.measures.slice().sort((a, b) => a.date.localeCompare(b.date));
+    const pts = sorted.filter((m) => m[measMetric] != null).map((m) => ({ date: m.date, v: m[measMetric] }));
+    $('meas-chart').innerHTML = lineChart(pts, measMetric === 'waist' ? 'ס״מ' : 'ק״ג');
+    $('meas-toggle').querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.v === measMetric));
+    const last = sorted[sorted.length - 1], prev = sorted[sorted.length - 2];
+    if (!last) { $('meas-summary').innerHTML = ''; return; }
+    const cell = (label, key, unit) => {
+      const c = last[key], p = prev ? prev[key] : null;
+      return `<div><span class="v">${c != null ? c : '—'}</span><span class="l">${label}${unit ? ' (' + unit + ')' : ''}</span>${deltaHtml(c, p, '', true)}</div>`;
+    };
+    const firstW = sorted.find((m) => m.waist != null);
+    const totalW = firstW && last.waist != null && sorted.length > 1 ? deltaHtml(last.waist, firstW.waist, ' ס״מ', true) : '';
+    $('meas-summary').innerHTML = `<div class="meas-row">${cell('היקף מותן', 'waist', 'ס״מ')}${cell('משקל', 'weight', 'ק״ג')}</div>
+      <p class="muted small" style="margin-top:8px">מדידה אחרונה: ${fmtDate(last.date)}${totalW ? ` · מאז המדידה הראשונה: ${totalW}` : ''}</p>`;
+  }
+
+  function renderTests() {
+    const sorted = state.tests.slice().sort((a, b) => a.date.localeCompare(b.date));
+    const last = sorted[sorted.length - 1], prev = sorted[sorted.length - 2];
+    if (!last) { $('test-results').innerHTML = '<p class="empty">עדיין לא בוצע מבחן. בצעו אותו עכשיו כדי לקבל נקודת פתיחה.</p>'; return; }
+    const row = (label, key, unit) => `<div class="test-row"><span class="n">${label}</span>${deltaHtml(last[key], prev ? prev[key] : null, '', false)}<span class="v">${last[key] != null ? last[key] + unit : '—'}</span></div>`;
+    $('test-results').innerHTML = `<div>${row('שכיבות סמיכה', 'pushups', '')}${row('פלאנק', 'plankSec', ' שנ׳')}${row('סקוואטים בדקה', 'squats', '')}</div>
+      <p class="muted small" style="margin-top:8px">מבחן אחרון: ${fmtDate(last.date)}${prev ? ` · קודם: ${fmtDate(prev.date)}` : ''}</p>`;
+  }
+
   let calMonth = null;
   function renderProgress() {
     const st = stats();
@@ -465,6 +609,8 @@
     if (!calMonth) { const n = new Date(); calMonth = { y: n.getFullYear(), m: n.getMonth() }; }
     renderCalendar();
 
+    renderMeasures(); renderTests();
+
     const hist = state.sessions.slice().sort((a, b) => b.id - a.id).slice(0, 30);
     $('history-list').innerHTML = hist.length ? hist.map((s) => { const dt = P.DAY_TYPES[s.dayType] || P.DAY_TYPES.rest; return `<div class="hist"><span class="ic">${dt.icon}</span><div class="t">${dt.name}<span>${fmtDate(s.date)} · ${P.LEVELS[s.level] || ''} · שבוע ${s.week}</span></div><span class="m">${Math.round(s.doneSec / 60)} דק׳ ${s.completed ? '✅' : '⏸'}</span></div>`; }).join('') : '<p class="empty">עדיין אין אימונים. היום יום טוב להתחיל!</p>';
   }
@@ -481,6 +627,25 @@
     }
     $('calendar').innerHTML = html;
   }
+  $('meas-toggle').querySelectorAll('button').forEach((b) => { b.onclick = () => { measMetric = b.dataset.v; renderMeasures(); }; });
+  $('meas-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const waist = parseFloat($('meas-waist').value), weight = parseFloat($('meas-weight').value);
+    if (isNaN(waist) && isNaN(weight)) return;
+    const d = today();
+    const rec = state.measures.find((m) => m.date === d) || (state.measures.push({ date: d }), state.measures[state.measures.length - 1]);
+    if (!isNaN(waist)) rec.waist = waist;
+    if (!isNaN(weight)) rec.weight = weight;
+    save(); $('meas-waist').value = ''; $('meas-weight').value = ''; renderMeasures();
+  });
+  $('test-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const p = parseInt($('test-pushups').value, 10), k = parseInt($('test-plank').value, 10), s = parseInt($('test-squats').value, 10);
+    if (isNaN(p) && isNaN(k) && isNaN(s)) return;
+    state.tests.push({ date: today(), pushups: isNaN(p) ? null : p, plankSec: isNaN(k) ? null : k, squats: isNaN(s) ? null : s });
+    save(); ['test-pushups', 'test-plank', 'test-squats'].forEach((id) => { $(id).value = ''; }); renderTests();
+  });
+
   $('cal-prev').onclick = () => { calMonth.m--; if (calMonth.m < 0) { calMonth.m = 11; calMonth.y--; } renderCalendar(); };
   $('cal-next').onclick = () => { calMonth.m++; if (calMonth.m > 11) { calMonth.m = 0; calMonth.y++; } renderCalendar(); };
 
@@ -525,11 +690,16 @@
   $('set-voice').addEventListener('change', (e) => { state.settings.voice = e.target.checked; save(); });
   $('set-wake').addEventListener('change', (e) => { state.settings.wake = e.target.checked; save(); });
 
-  $('btn-export').onclick = () => {
+  function exportBackup() {
+    state.backupAt = state.sessions.filter((s) => s.completed).length;
+    save();
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `calisthenics-backup-${today()}.json`; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  };
+    const el = document.createElement('a');
+    el.href = URL.createObjectURL(blob); el.download = `calisthenics-backup-${today()}.json`; el.click();
+    setTimeout(() => URL.revokeObjectURL(el.href), 2000);
+    const note = document.getElementById('backup-note'); if (note) note.remove();
+  }
+  $('btn-export').onclick = exportBackup;
   $('btn-import').onclick = () => $('import-file').click();
   $('import-file').addEventListener('change', async (e) => {
     const f = e.target.files[0]; if (!f) return;

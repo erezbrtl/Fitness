@@ -246,3 +246,48 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .lib-ex .steps, .lib-ex .tip { margin-top: 8px; }
 
 .steps.preview { opacity: .72; }
+
+/* ---- טפסים בתוך כרטיס ---- */
+.inline-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.inline-form label { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; color: var(--muted); font-weight: 600; }
+.inline-form input { padding: .7rem .9rem; border-radius: 12px; border: 1px solid #263353; background: var(--bg2); color: var(--text); font-size: 1rem; font-family: inherit; }
+.inline-form .btn { margin-top: 2px; }
+.small-seg { padding: 3px; }
+.small-seg button { font-size: .78rem; padding: .35rem .6rem; }
+
+/* ---- גרף מדידות ---- */
+.line-chart { width: 100%; height: 132px; display: block; overflow: visible; }
+.line-chart .grid { stroke: #22304f; stroke-width: 1; }
+.line-chart .area { fill: url(#lg); }
+.line-chart .line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.line-chart .dot { fill: var(--accent); }
+.line-chart .lbl { fill: var(--muted); font-size: 9px; }
+.meas-row { display: flex; gap: 10px; margin: 12px 0 0; }
+.meas-row div { flex: 1; background: var(--bg2); border-radius: 12px; padding: 10px; text-align: center; }
+.meas-row .v { display: block; font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.meas-row .l { display: block; font-size: .72rem; color: var(--muted); }
+.delta { font-size: .8rem; font-weight: 700; }
+.delta.down { color: var(--accent2); }
+.delta.up { color: #fca5a5; }
+.delta.same { color: var(--muted); }
+
+/* ---- מבחן כושר ---- */
+.test-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #22304f; }
+.test-row:last-child { border-bottom: none; }
+.test-row .n { flex: 1; font-size: .92rem; }
+.test-row .v { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* ---- אימון קצר להיום ---- */
+.quick { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.quick span { font-size: .78rem; color: var(--muted); margin-inline-end: 2px; }
+.quick button { padding: .3rem .7rem; border-radius: 999px; background: var(--card2); font-size: .82rem; font-weight: 700; }
+.quick button.active { background: var(--accent); color: #04121c; }
+
+/* ---- החלפת תרגיל ---- */
+.swap-btn { font-size: .8rem; color: var(--accent); background: var(--card); padding: .3rem .8rem; border-radius: 999px; margin-top: 2px; }
+.swap-btn:active { transform: scale(.96); }
+
+/* ---- תזכורת גיבוי ---- */
+.backup-note { display: flex; align-items: center; gap: 10px; background: rgba(245,158,11,.12); border-inline-start: 3px solid var(--warn); border-radius: 12px; padding: 11px 13px; margin-bottom: 14px; }
+.backup-note p { margin: 0; flex: 1; font-size: .85rem; color: #ffdba8; }
+.backup-note button { background: var(--warn); color: #1a1000; font-weight: 800; font-size: .82rem; padding: .4rem .8rem; border-radius: 10px; white-space: nowrap; }
