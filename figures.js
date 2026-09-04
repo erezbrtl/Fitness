@@ -30,13 +30,14 @@
     shuffleLow:   [ 96,36, 98,52,102,84,12,8, 114,66,108,80, 84,66,88,82, 118,106,128,126, 92,106,84,126, 0,0],
 
     /* ---- עמידה, מבט צד (פונה ימינה) ---- */
-    standSide:    [106,26,100,44,100,80, 3,3, 106,62,108,84, 106,62,108,84, 102,104,102,128, 102,104,102,128, 0,0],
+    standSide:    [106,26,100,44,100,80, 3,3, 110,62,114,82, 110,62,114,82, 102,104,102,128, 102,104,102,128, 0,0],
     squatDown:    [110,50, 99,66, 86,94, 3,3, 112,76,128,70, 112,76,128,70, 112,102,100,128, 112,102,100,128, 0,0],
     lungeDown:    [106,30,100,48, 98,84, 3,3, 106,66,108,86, 106,66,108,86, 116,102,118,128, 80,110,68,126, 0,0],
     lungeDeep:    [106,38,100,56, 96,92, 3,3, 104,72,106,92, 104,72,106,92, 114,106,116,128, 76,118,64,128, 0,0],
     slSquatDown:  [108,44,100,60, 92,88, 3,3, 110,72,126,66, 110,72,126,66, 110,104,100,128, 74,100,60,110, 0,0],
     slSquatTop:   [106,26,100,44,100,80, 3,3, 108,60,120,54, 108,60,120,54, 102,104,102,128, 88,94,72,98, 0,0],
-    legSwing:     [104,26,100,44,100,80, 3,3, 106,62,108,84, 106,62,108,84, 100,104,100,128, 116,96,132,90, 0,0],
+    legSwing:     [104,26,100,44,100,80, 3,3, 110,60,116,78, 110,60,116,78, 100,104,100,128, 116, 96,132, 90, 0,0],
+    jumpUpSide:   [106,28,100,44,100,76, 4,4, 116,26,128, 10,  92,26, 80, 12, 112, 96,104,112,  92, 96, 84,112, 0,0],
     hinge:        [116,44,104,54, 92,78, 3,3, 112,72,116,92, 112,72,116,92, 96,102,96,128, 96,102,96,128, 0,0],
     deepSquat:    [108,54, 98,68, 90,104, 3,3, 104,84,112,94, 104,84,112,94, 118,98,106,128, 118,98,106,128, 0,0],
     sitCross:     [110,60,102,74, 94,110, 3,3, 108,90,116,110, 108,90,116,110, 76,116,100,120, 76,116,100,120, 0,0],
@@ -51,7 +52,7 @@
     pikeTop:      [140,86,132,82, 96,52, 0,0, 144,104,148,124, 144,104,148,124, 74,88,56,124, 74,88,56,124, 0,0],
     pikeDown:     [148,108,138,98, 96,54, 0,0, 146,114,150,126, 146,114,150,126, 74,88,56,124, 74,88,56,124, 0,0],
     downDog:      [138,84,130,78, 96,44, 0,0, 142,102,148,124, 142,102,148,124, 76,84,56,124, 76,84,56,124, 0,0],
-    cobraUp:      [148,62,138,72, 96,112, 0,0, 142,94,142,124, 142,94,142,124, 70,118,46,122, 70,118,46,122, 0,0],
+    cobraUp:      [148,60,138, 72, 96,114, 0,0, 142, 94,142,124, 142, 94,142,124, 70,118,46,122, 70,118,46,122, 122, 88],
     planche:      [150,80,140,86, 98,92, 0,0, 128,104,124,124, 128,104,124,124, 74,106,52,124, 74,106,52,124, 0,0],
     archerLean:   [150,84,140,90, 96,94, 0,0, 148,106,150,126, 120,104,102,124, 74,108,52,124, 74,108,52,124, 0,0],
     mcKnee:       [150,74,140,80, 98,90, 0,0, 142,102,142,124, 142,102,142,124, 116,98,128,110, 74,106,52,124, 0,0],
@@ -71,13 +72,13 @@
 
     /* ---- שכיבה על הבטן ---- */
     proneFlat:    [148,104,138,108, 96,116, 0,0, 158,112,176,110, 158,112,176,110, 70,118,46,120, 70,118,46,120, 0,0],
-    supermanUp:   [146,90,138,98, 96,112, 0,0, 158,94,178,86, 158,94,178,86, 70,110,46, 98, 70,110,46, 98, 0,0],
-    proneRow:     [146,94,138,100, 96,112, 0,0, 152,112,136,102, 152,112,136,102, 70,116,46,118, 70,116,46,118, 0,0],
-    proneY:       [146,96,138,102, 96,114, 0,0, 158,98,176,88, 158,98,176,88, 70,118,46,120, 70,118,46,120, 0,0],
-    proneT:       [146,96,138,102, 96,114, 0,0, 150,110,152,128, 150,110,152,128, 70,118,46,120, 70,118,46,120, 0,0],
-    proneW:       [146,96,138,102, 96,114, 0,0, 156,114,144,100, 156,114,144,100, 70,118,46,120, 70,118,46,120, 0,0],
-    swimKick:     [146,94,138,100, 96,112, 0,0, 160,96,178,88, 152,112,136,104, 70,104,48, 92, 70,118,46,120, 0,0],
-    proneTwist:   [140,92,134,100, 96,114, 0,0, 152,104,150,88, 148,112,158,124, 70,116,46,118, 70,116,46,118, 0,0],
+    supermanUp:   [148,88,138, 98, 96,114, 0,0, 158, 88,178, 78, 158, 88,178, 78, 70,108,46, 94, 70,108,46, 94, 118,100],
+    proneRow:     [148, 92,138,100, 96,116, 0,0, 154,110,138, 96, 154,110,138, 96, 70,118,46,120, 70,118,46,120, 118,104],
+    proneY:       [148, 92,138,100, 96,116, 0,0, 158, 92,176, 80, 158, 92,176, 80, 70,118,46,120, 70,118,46,120, 118,104],
+    proneT:       [148, 92,138,100, 96,116, 0,0, 150,104,154,120, 150,104,154,120, 70,118,46,120, 70,118,46,120, 118,104],
+    proneW:       [148, 92,138,100, 96,116, 0,0, 158,108,146, 92, 158,108,146, 92, 70,118,46,120, 70,118,46,120, 118,104],
+    swimKick:     [148, 92,138,100, 96,114, 0,0, 160, 90,178, 80, 154,110,138, 98, 70,104,48, 88, 70,118,46,120, 118,102],
+    proneTwist:   [142, 88,134, 98, 96,116, 0,0, 152,100,150, 82, 148,112,158,124, 70,118,46,120, 70,118,46,120, 116,102],
     scorpionTw:   [148,104,138,110, 96,116, 0,0, 158,120,176,124, 158,120,176,124, 74,104,96, 92, 70,118,46,120, 0,0],
 
     /* ---- שכיבה על הגב ---- */
@@ -131,7 +132,7 @@
     /* חימום */
     jj_warm:['standFeet','jackOpen'], march:['marchKnee','marchKnee',{flipB:1}],
     arm_circles:['armsSide','armsSideUp'], hip_circles:['handsHips','hipsTilt',{flipB:1}],
-    inchworm:['foldOver','plankHigh'], catcow_w:['cowArch','catRound'],
+    inchworm:['foldOver','walkoutMid','plankHigh'], catcow_w:['cowArch','catRound'],
     leg_swings:['standSide','legSwing'], slow_squat:['standSide','squatDown'],
     torso_twist:['twistSide','twistSide',{flipB:1}], shoulder_tap_w:['plankHigh','shoulderTap'],
     butt_kicks_w:['heelBack','heelBack',{flipB:1}],
@@ -140,7 +141,7 @@
     wide_pushup:['plankHigh','pushDown'], diamond_pushup:['plankHigh','pushDown'],
     pike_pushup:['pikeTop','pikeDown'], archer_pushup:['plankHigh','archerLean'],
     pseudo_planche:['planche','pushDown'], crab_dips:['crabUp','crabDown'],
-    updown:['plankElbow','plankHigh'], hindu_pushup:['downDog','cobraUp'],
+    updown:['plankElbow','plankHigh'], hindu_pushup:['downDog','pushDown','cobraUp'],
     scap_pushup:['plankHigh','plankScap'], pushup_hold:['pushDown','pushDown'],
     /* משיכה */
     superman:['proneFlat','supermanUp'], superman_pull:['proneY','proneRow'],
@@ -152,7 +153,7 @@
     /* רגליים */
     squat:['standSide','squatDown'], sumo_squat:['stand','sumoDown'],
     rev_lunge:['standSide','lungeDown'], fwd_lunge:['standSide','lungeDown'],
-    jump_squat:['squatDown','jackOpen'], split_pulse:['lungeDown','lungeDeep'],
+    jump_squat:['squatDown','jumpUpSide'], split_pulse:['lungeDown','lungeDeep'],
     shrimp_squat:['slSquatTop','slSquatDown'], pistol:['slSquatTop','slSquatDown'],
     glute_bridge:['bridgeDown','bridgeUp'], sl_bridge:['bridgeDown','bridgeSl'],
     calf_raise:['stand','calfUp'], curtsy:['stand','curtsyDown',{flipB:1}],
@@ -169,26 +170,26 @@
     rev_crunch:['kneesUp','revCrunchUp'], hip_dips:['plankElbow','hipDipDown',{flipB:1}],
     hollow_rock:['hollowHold','hollowRock'], side_plank_dip:['sidePlank','sidePlankLow'],
     toe_touch:['legsUp','reachToes'], heel_touch:['crunchUp','crunchUp',{flipB:1}],
-    plank_walkout:['foldOver','plankHigh'], wipers:['legsUp','wiperSide',{flipB:1}],
+    plank_walkout:['foldOver','walkoutMid','plankHigh'], wipers:['legsUp','wiperSide',{flipB:1}],
     mc_core:['plankHigh','mcKnee'], plank_reach:['plankHigh','plankReachA',{flipB:1}],
     long_plank:['plankHigh','plankHigh'],
     /* קרדיו */
     jj:['standFeet','jackOpen'], high_knees:['kneeHigh','kneeHigh',{flipB:1}],
-    burpee:['plankHigh','jackOpen'], half_burpee:['plankHigh','foldOver'],
-    mountain_climber:['mcKnee','mcKnee',{flipB:1}], squat_jump_c:['squatDown','jackOpen'],
+    burpee:['plankHigh','foldOver','jumpUpSide'], half_burpee:['plankHigh','foldOver','standSide'],
+    mountain_climber:['mcKnee','mcKnee',{flipB:1}], squat_jump_c:['squatDown','jumpUpSide'],
     skater:['skaterSide','skaterSide',{flipB:1}], plank_jack:['plankHigh','plankJackW'],
     tuck_jump:['starLow','tuckAir'], butt_kicks:['heelBack','heelBack',{flipB:1}],
-    fast_feet:['feetFast','feetFast',{flipB:1}], burpee_pushup:['pushDown','jackOpen'],
+    fast_feet:['feetFast','feetFast',{flipB:1}], burpee_pushup:['pushDown','plankHigh','foldOver','jumpUpSide'],
     lateral_shuffle:['shuffleLow','shuffleLow',{flipB:1}], star_jump:['starLow','jackOpen'],
     bear_crawl:['bearHigh','bearStep',{flipB:1}], jump_lunge_c:['lungeDown','lungeDown',{flipB:1}],
-    cross_mc:['mcCross','mcCross',{flipB:1}], squat_thrust:['foldOver','plankHigh'],
-    punches:['punchOut','punchOut',{flipB:1}], sprawl:['standSide','plankHigh'],
+    cross_mc:['mcCross','mcCross',{flipB:1}], squat_thrust:['plankHigh','foldOver','standSide'],
+    punches:['punchOut','punchOut',{flipB:1}], sprawl:['standSide','foldOver','plankHigh'],
     plank_updown_c:['plankElbow','plankHigh'],
     /* ניידות */
-    world_greatest:['lungeDeep','worldStretch'], downdog_flow:['downDog','cobraUp'],
+    world_greatest:['lungeDeep','worldStretch'], downdog_flow:['downDog','plankHigh','cobraUp'],
     hip_90:['seated9090','seated9090',{flipB:1}], thoracic_rot:['thoracicIn','thoracicOpen'],
     deep_squat_hold:['deepSquat','deepSquat'], scorpion:['proneFlat','scorpionTw',{flipB:1}],
-    cat_cow_m:['cowArch','catRound'], sit_stand:['sitCross','standSide'],
+    cat_cow_m:['cowArch','catRound'], sit_stand:['sitCross','deepSquat','standSide'],
     /* שחרור */
     child_pose:['childPoseP','childPoseP'], cobra_stretch:['proneFlat','cobraUp'],
     hamstring_seated:['seatedFold','seatedFold'], pigeon:['pigeonP','pigeonP'],
@@ -208,54 +209,120 @@
   const flipPose = (a) => { const o = a.slice(); for (let i = 0; i < o.length; i += 2) if (i !== 6 && i !== 7) o[i] = 200 - o[i]; return o; };
   const lerp = (a, b, t) => a.map((v, i) => (i === 6 || i === 7 ? Math.max(v, b[i]) : v + (b[i] - v) * t));
 
-  function limbPath(sx, sy, jx, jy, ex, ey) { return `M${sx} ${sy}L${jx} ${jy}L${ex} ${ey}`; }
-  function torsoPath(p) {
-    const [nx, ny, px, py] = [p[2], p[3], p[4], p[5]];
-    const [mx, my] = [p[24], p[25]];
-    return mx || my ? `M${nx} ${ny}Q${mx} ${my} ${px} ${py}` : `M${nx} ${ny}L${px} ${py}`;
+  const HEAD_R = 8;      // רדיוס ראש — כ‑1/7 מגובה הדמות
+  const GROUND = 131;    // גובה הרצפה
+  const NEAR_FLOOR = 117;
+  const seg = (ax, ay, bx, by) => `M${ax.toFixed(1)} ${ay.toFixed(1)}L${bx.toFixed(1)} ${by.toFixed(1)}`;
+
+  /* כיוון קצה גפה: ממשיך את כיוון השוק/האמה, ומתיישר כשהקצה נוגע ברצפה */
+  function tip(jx, jy, ex, ey, len, facing, floorLevel) {
+    let dx = ex - jx, dy = ey - jy;
+    const n = Math.hypot(dx, dy) || 1;
+    dx /= n; dy /= n;
+    if (ey >= floorLevel) {
+      // קצה על הרצפה: כף שטוחה בכיוון הפנייה (או בכיוון הגפה אם היא נוטה בבירור)
+      const h = Math.abs(dx) > 0.35 ? Math.sign(dx) : facing;
+      return [ex + h * len, Math.min(ey, GROUND)];
+    }
+    let tx = ex + dx * len, ty = ey + dy * len;
+    if (ty > GROUND) { ty = GROUND; }
+    return [tx, ty];
   }
-  const sameLimb = (p, i, j) => p[i] === p[j] && p[i + 1] === p[j + 1];
+
+  function build() {
+    const cls = (c, w) => mk('path', { class: c, 'stroke-width': w });
+    return {
+      neck:  cls('fig-limb', 7),
+      torso: mk('path', { class: 'fig-torso' }),
+      head:  mk('circle', { r: HEAD_R, class: 'fig-head' }),
+      upA:   cls('fig-limb', 9),   loA: cls('fig-limb', 7.5), hdA: cls('fig-limb fig-tip', 7.5),
+      upA2:  cls('fig-limb fig-far', 9), loA2: cls('fig-limb fig-far', 7.5), hdA2: cls('fig-limb fig-far fig-tip', 7.5),
+      thL:   cls('fig-limb', 10),  shL: cls('fig-limb', 8),   ftL: cls('fig-limb fig-tip', 8),
+      thL2:  cls('fig-limb fig-far', 10), shL2: cls('fig-limb fig-far', 8), ftL2: cls('fig-limb fig-far fig-tip', 8),
+    };
+  }
 
   function apply(g, p) {
     const sw = p[6], hw = p[7];
-    // זרוע/רגל רחוקה מוסטת מעט כשהתנוחה במבט צד, כדי לתת עומק
+    const frontView = sw > 6;
+    const facing = frontView ? 1 : (p[0] >= p[4] ? 1 : -1);
     const sideView = sw === 0;
     const dx = sideView ? -7 : 0, dy = sideView ? 4 : 0;
-    const armFar = sameLimb(p, 8, 12) && sameLimb(p, 10, 14);
-    const legFar = sameLimb(p, 16, 20) && sameLimb(p, 18, 22);
+    const armFar = sideView && p[8] === p[12] && p[9] === p[13] && p[10] === p[14] && p[11] === p[15];
+    const legFar = sideView && p[16] === p[20] && p[17] === p[21] && p[18] === p[22] && p[19] === p[23];
+
+    // ראש וצוואר
     g.head.setAttribute('cx', p[0]); g.head.setAttribute('cy', p[1]);
-    g.torso.setAttribute('d', torsoPath(p));
-    g.armN.setAttribute('d', limbPath(p[2] + sw, p[3], p[8], p[9], p[10], p[11]));
-    g.armF.setAttribute('d', limbPath(p[2] - sw + (armFar ? dx : 0), p[3] + (armFar ? dy : 0), p[12] + (armFar ? dx : 0), p[13] + (armFar ? dy : 0), p[14] + (armFar ? dx : 0), p[15] + (armFar ? dy : 0)));
-    g.legN.setAttribute('d', limbPath(p[4] + hw, p[5], p[16], p[17], p[18], p[19]));
-    g.legF.setAttribute('d', limbPath(p[4] - hw + (legFar ? dx : 0), p[5] + (legFar ? dy : 0), p[20] + (legFar ? dx : 0), p[21] + (legFar ? dy : 0), p[22] + (legFar ? dx : 0), p[23] + (legFar ? dy : 0)));
+    const nvx = p[2] - p[0], nvy = p[3] - p[1], nn = Math.hypot(nvx, nvy) || 1;
+    g.neck.setAttribute('d', seg(p[0] + (nvx / nn) * (HEAD_R - 1), p[1] + (nvy / nn) * (HEAD_R - 1), p[2], p[3]));
+
+    // גו — קו ישר או קשת דרך נקודת האמצע
+    g.torso.setAttribute('d', p[24] || p[25] ? `M${p[2]} ${p[3]}Q${p[24]} ${p[25]} ${p[4]} ${p[5]}` : seg(p[2], p[3], p[4], p[5]));
+
+    // זרועות
+    const arm = (up, lo, hd, sx, sy, ex, ey, wx, wy, side) => {
+      up.setAttribute('d', seg(sx, sy, ex, ey));
+      lo.setAttribute('d', seg(ex, ey, wx, wy));
+      const f = frontView ? side : facing;
+      const t = tip(ex, ey, wx, wy, 6, f, NEAR_FLOOR);
+      hd.setAttribute('d', seg(wx, wy, t[0], t[1]));
+    };
+    arm(g.upA, g.loA, g.hdA, p[2] + sw, p[3], p[8], p[9], p[10], p[11], 1);
+    arm(g.upA2, g.loA2, g.hdA2, p[2] - sw + (armFar ? dx : 0), p[3] + (armFar ? dy : 0),
+        p[12] + (armFar ? dx : 0), p[13] + (armFar ? dy : 0), p[14] + (armFar ? dx : 0), p[15] + (armFar ? dy : 0), -1);
+
+    // רגליים
+    const leg = (th, sh, ft, hx, hy, kx, ky, ax, ay, side) => {
+      th.setAttribute('d', seg(hx, hy, kx, ky));
+      sh.setAttribute('d', seg(kx, ky, ax, ay));
+      const f = frontView ? side : facing;
+      const t = tip(kx, ky, ax, ay, 9, f, NEAR_FLOOR);
+      ft.setAttribute('d', seg(ax, ay, t[0], t[1]));
+    };
+    leg(g.thL, g.shL, g.ftL, p[4] + hw, p[5], p[16], p[17], p[18], p[19], 1);
+    leg(g.thL2, g.shL2, g.ftL2, p[4] - hw + (legFar ? dx : 0), p[5] + (legFar ? dy : 0),
+        p[20] + (legFar ? dx : 0), p[21] + (legFar ? dy : 0), p[22] + (legFar ? dx : 0), p[23] + (legFar ? dy : 0), -1);
   }
 
-  /* יוצר איור. animate=true מפעיל תנועה מחזורית בין שתי התנוחות. */
+  /* מחזיר את רשימת התנוחות של תרגיל (2 או 3 שלבים) */
+  function posesFor(ex) {
+    const m = MAP[ex.id] || FALLBACK[ex.cat] || ['stand', 'stand'];
+    const o = (typeof m[m.length - 1] === 'object') ? m[m.length - 1] : null;
+    const names = o ? m.slice(0, -1) : m;
+    const list = names.map((n) => POSES[n] || POSES.stand);
+    if (o && o.flipB && list.length > 1) list[list.length - 1] = flipPose(list[list.length - 1]);
+    return list;
+  }
+
+  /* מיקום בתוך רצף הלוך-ושוב על פני מספר תנוחות */
+  function poseAt(list, ph) {
+    if (list.length === 1) return list[0];
+    const segs = (list.length - 1) * 2;
+    const x = ph * segs;
+    let i = Math.floor(x), f = x - i;
+    if (i >= segs) { i = segs - 1; f = 1; }
+    const ease = f * f * (3 - 2 * f);
+    const fwd = i < list.length - 1;
+    const a = fwd ? list[i] : list[segs - i];
+    const b = fwd ? list[i + 1] : list[segs - i - 1];
+    return lerp(a, b, ease);
+  }
+
   function create(ex, opts) {
     opts = opts || {};
-    const m = MAP[ex.id] || FALLBACK[ex.cat] || ['stand', 'stand'];
-    const o = m[2] || {};
-    const A = POSES[m[0]] || POSES.stand;
-    let B = POSES[m[1]] || A;
-    if (o.flipB) B = flipPose(B);
+    const list = posesFor(ex);
     const svg = mk('svg', { viewBox: '0 0 200 140', class: 'figure', 'aria-hidden': 'true' });
-    const mat = mk('line', { x1: 12, y1: 133, x2: 188, y2: 133, class: 'fig-mat' });
-    const g = {
-      armF: mk('path', { class: 'fig-limb fig-far' }), legF: mk('path', { class: 'fig-limb fig-far' }),
-      torso: mk('path', { class: 'fig-torso' }), head: mk('circle', { r: 10, class: 'fig-head' }),
-      armN: mk('path', { class: 'fig-limb' }), legN: mk('path', { class: 'fig-limb' }),
-    };
-    svg.append(mat, g.armF, g.legF, g.torso, g.legN, g.armN, g.head);
-    apply(g, A);
-    if (opts.animate && A !== B) {
-      const period = opts.period || 2600;
-      let raf = 0, t0 = performance.now();
+    const mat = mk('line', { x1: 12, y1: GROUND + 2, x2: 188, y2: GROUND + 2, class: 'fig-mat' });
+    const g = build();
+    svg.append(mat, g.upA2, g.loA2, g.hdA2, g.thL2, g.shL2, g.ftL2, g.torso, g.neck,
+               g.thL, g.shL, g.ftL, g.upA, g.loA, g.hdA, g.head);
+    apply(g, list[0]);
+    const still = list.every((p) => p === list[0]);
+    if (opts.animate && !still) {
+      const period = opts.period || (2600 + (list.length - 2) * 900);
+      let raf = 0; const t0 = performance.now();
       const frame = (now) => {
-        const ph = ((now - t0) % period) / period;             // 0..1
-        const tri = ph < 0.5 ? ph * 2 : (1 - ph) * 2;          // הלוך ושוב
-        const e = tri * tri * (3 - 2 * tri);                   // האטה בקצוות
-        apply(g, lerp(A, B, e));
+        apply(g, poseAt(list, ((now - t0) % period) / period));
         raf = requestAnimationFrame(frame);
       };
       raf = requestAnimationFrame(frame);
