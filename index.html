@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="קליסטניקס" />
+  <meta name="description" content="אפליקציית אימוני קליסטניקס ביתיים — תוכנית קבועה, טיימר ומעקב התקדמות" />
+  <title>קליסטניקס בבית</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- מסך בית -->
+    <section class="screen active" id="screen-home">
+      <header class="topbar">
+        <div>
+          <h1 id="home-greeting">שלום!</h1>
+          <p class="muted" id="home-date"></p>
+        </div>
+        <div class="streak" id="home-streak" title="רצף אימונים">🔥 <b>0</b></div>
+      </header>
+
+      <div class="card today-card" id="today-card"></div>
+
+      <div class="week-strip" id="week-strip"></div>
+
+      <div class="stats-row" id="home-stats"></div>
+
+      <div class="card" id="cycle-card"></div>
+    </section>
+
+    <!-- מסך תוכנית -->
+    <section class="screen" id="screen-plan">
+      <header class="topbar"><h1>התוכנית השבועית</h1></header>
+      <p class="muted intro">
+        התוכנית בנויה על עקרונות הקליסטניקס: איזון בין דחיפה, משיכה, רגליים וליבה, אינטרוולים לשריפת שומן,
+        ועומס שעולה בהדרגה לאורך מחזור של 4 שבועות. כל אימון נמשך בדיוק את הזמן שקבעתם.
+      </p>
+      <div id="plan-list"></div>
+      <div class="card">
+        <h3>עקרונות שמובנים בתוכנית</h3>
+        <ul class="principles">
+          <li><b>התקדמות הדרגתית:</b> בכל שבוע במחזור זמן העבודה עולה והמנוחה מתקצרת. בשבוע 4 נבחרות הווריאציות הקשות יותר.</li>
+          <li><b>איזון תנועתי:</b> ימי הכוח משלבים דחיפה, משיכה (שרשרת אחורית), רגליים וליבה.</li>
+          <li><b>שריפת שומן:</b> ימי HIIT ומטבולי מעלים דופק עם עבודה/מנוחה קצרים. שומן בטני יורד עם עקביות וגירעון קלורי, לא עם תרגילי בטן בלבד.</li>
+          <li><b>התאוששות:</b> יום מנוחה מלא אחד לפחות בשבוע, וחימום ושחרור בכל אימון.</li>
+          <li><b>טכניקה לפני קצב:</b> אם התרגיל קשה מדי, עברו לגרסה קלה יותר או האטו. הרמה ניתנת לשינוי בהגדרות.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- מסך התקדמות -->
+    <section class="screen" id="screen-progress">
+      <header class="topbar"><h1>התקדמות</h1></header>
+      <div class="stats-row" id="progress-stats"></div>
+      <div class="card">
+        <h3>דקות אימון — 8 השבועות האחרונים</h3>
+        <div class="bars" id="weekly-bars"></div>
+      </div>
+      <div class="card">
+        <div class="cal-head">
+          <button class="icon-btn" id="cal-prev" aria-label="חודש קודם">›</button>
+          <h3 id="cal-title"></h3>
+          <button class="icon-btn" id="cal-next" aria-label="חודש הבא">‹</button>
+        </div>
+        <div class="calendar" id="calendar"></div>
+        <p class="muted small">🟢 אימון הושלם &nbsp; 🟡 אימון חלקי &nbsp; ⚪ יום אימון שהוחמץ</p>
+      </div>
+      <div class="card">
+        <h3>היסטוריה</h3>
+        <div id="history-list"></div>
+      </div>
+    </section>
+
+    <!-- ספריית תרגילים -->
+    <section class="screen" id="screen-library">
+      <header class="topbar"><h1>ספריית תרגילים</h1></header>
+      <input type="search" id="lib-search" placeholder="חיפוש תרגיל…" />
+      <div class="chips" id="lib-chips"></div>
+      <div id="lib-list"></div>
+    </section>
+
+    <!-- הגדרות -->
+    <section class="screen" id="screen-settings">
+      <header class="topbar"><h1>הגדרות</h1></header>
+      <div class="card">
+        <label class="field">
+          <span>משך אימון יומי</span>
+          <div class="range-row">
+            <input type="range" id="set-duration" min="10" max="60" step="5" />
+            <output id="set-duration-out">20 דק׳</output>
+          </div>
+        </label>
+        <label class="field">
+          <span>רמת קושי</span>
+          <div class="seg" id="set-level">
+            <button data-v="1">מתחיל</button>
+            <button data-v="2">בינוני</button>
+            <button data-v="3">מתקדם</button>
+          </div>
+          <small class="muted">מתחיל: שכיבות סמיכה על ברכיים, סקוואט רגיל. בינוני: שכיבות סמיכה מלאות, קפיצות. מתקדם: יהלום, פיסטול, גוף חלול.</small>
+        </label>
+        <label class="field">
+          <span>ימי אימון בשבוע</span>
+          <div class="days" id="set-days"></div>
+          <small class="muted">מומלץ 4‑6 ימים עם לפחות יום מנוחה אחד. סוגי האימון מוקצים אוטומטית לפי הימים שנבחרו.</small>
+        </label>
+        <label class="field row">
+          <span>צלילים (צפצופים במעבר)</span>
+          <input type="checkbox" id="set-sound" />
+        </label>
+        <label class="field row">
+          <span>הקראת שם התרגיל</span>
+          <input type="checkbox" id="set-voice" />
+        </label>
+        <label class="field row">
+          <span>מסך דולק בזמן אימון</span>
+          <input type="checkbox" id="set-wake" />
+        </label>
+      </div>
+      <div class="card">
+        <h3>נתונים</h3>
+        <p class="muted small">כל הנתונים נשמרים בדפדפן שלכם בלבד. ניתן לייצא ולייבא גיבוי.</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="btn-export">ייצוא גיבוי</button>
+          <button class="btn secondary" id="btn-import">ייבוא גיבוי</button>
+          <input type="file" id="import-file" accept="application/json" hidden />
+        </div>
+        <div class="btn-row">
+          <button class="btn secondary" id="btn-restart-cycle">התחלת מחזור חדש</button>
+          <button class="btn danger" id="btn-reset">איפוס מלא</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>התקנה על הטלפון</h3>
+        <p class="muted small">
+          <b>אנדרואיד (Chrome):</b> תפריט ⋮ ← "הוספה למסך הבית" / "התקנת אפליקציה".<br />
+          <b>אייפון (Safari):</b> כפתור שיתוף ← "הוסף למסך הבית".
+        </p>
+        <button class="btn primary" id="btn-install" hidden>התקנת האפליקציה</button>
+        <p class="muted small" id="version"></p>
+      </div>
+    </section>
+
+    <!-- נגן אימון (מסך מלא) -->
+    <section class="screen player" id="screen-player">
+      <div class="player-top">
+        <button class="icon-btn" id="pl-exit" aria-label="יציאה">✕</button>
+        <div class="player-title">
+          <b id="pl-name"></b>
+          <span class="muted" id="pl-phase"></span>
+        </div>
+        <div class="player-total"><span id="pl-elapsed">0:00</span> / <span id="pl-total">0:00</span></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="pl-progress"></div></div>
+
+      <div class="player-main" id="pl-main">
+        <div class="kind-badge" id="pl-kind"></div>
+        <div class="ex-name" id="pl-ex"></div>
+        <div class="ex-meta" id="pl-meta"></div>
+        <div class="timer-ring">
+          <svg viewBox="0 0 120 120">
+            <circle class="ring-bg" cx="60" cy="60" r="54" />
+            <circle class="ring-fg" id="pl-ring" cx="60" cy="60" r="54" />
+          </svg>
+          <div class="timer-num" id="pl-time">00</div>
+        </div>
+        <div class="side-hint" id="pl-side" hidden>🔁 החליפו צד!</div>
+        <p class="ex-desc" id="pl-desc"></p>
+        <div class="next-up" id="pl-next"></div>
+      </div>
+
+      <div class="player-controls">
+        <button class="ctl" id="pl-prev" aria-label="תרגיל קודם">⏭</button>
+        <button class="ctl big" id="pl-pause" aria-label="השהיה">⏸</button>
+        <button class="ctl" id="pl-skip" aria-label="דלג">⏮</button>
+      </div>
+    </section>
+
+    <!-- סיכום אימון -->
+    <section class="screen" id="screen-summary">
+      <div class="summary" id="summary-body"></div>
+    </section>
+
+    <!-- תצוגה מקדימה של אימון -->
+    <section class="screen" id="screen-preview">
+      <header class="topbar">
+        <button class="icon-btn" id="pv-back" aria-label="חזרה">→</button>
+        <h1 id="pv-title"></h1>
+      </header>
+      <div id="pv-body"></div>
+    </section>
+
+    <!-- ניווט תחתון -->
+    <nav class="tabbar" id="tabbar">
+      <button data-screen="home" class="active"><span>🏠</span>בית</button>
+      <button data-screen="plan"><span>📅</span>תוכנית</button>
+      <button data-screen="progress"><span>📈</span>התקדמות</button>
+      <button data-screen="library"><span>📖</span>תרגילים</button>
+      <button data-screen="settings"><span>⚙️</span>הגדרות</button>
+    </nav>
+  </div>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-box">
+      <p id="modal-text"></p>
+      <div class="btn-row">
+        <button class="btn secondary" id="modal-cancel">ביטול</button>
+        <button class="btn primary" id="modal-ok">אישור</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="exercises.js"></script>
+  <script src="program.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
