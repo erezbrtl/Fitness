@@ -21,11 +21,17 @@
   const fmtTime = (sec) => `${Math.floor(sec / 60)}:${pad(sec % 60)}`;
   const fmtDate = (s) => { const d = fromIso(s); return `יום ${DAY_NAMES[d.getDay()]}, ${d.getDate()} ב${MONTHS[d.getMonth()]}`; };
 
+  /* יום ראשון הקרוב (אם היום ראשון — היום) */
+  function nextSunday(from) {
+    const d = fromIso(from || today());
+    d.setDate(d.getDate() + ((7 - d.getDay()) % 7));
+    return iso(d);
+  }
+
   /* ---------- מצב ואחסון ---------- */
   const defaults = () => ({
     settings: { duration: 20, level: 1, trainDays: [0, 1, 2, 4, 5], sound: true, voice: false, wake: true },
-    startDate: today(),   // תחילת המחזור הנוכחי (יום ראשון של אותו שבוע)
-    installDate: today(), // ימים לפני ההתקנה לא נחשבים כהחמצה
+    startDate: nextSunday(), // תחילת המחזור — כברירת מחדל יום ראשון הקרוב
     cycle: 1,
     sessions: [],          // { id, date, dayType, week, cycle, plannedSec, doneSec, completed, level }
     levelPrompted: {},     // מחזורים שכבר הוצעה בהם העלאת רמה
@@ -35,11 +41,11 @@
   function load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
-      if (!raw) { const s = defaults(); s.startDate = weekStart(today()); return s; }
+      if (!raw) return defaults();
       const s = Object.assign(defaults(), JSON.parse(raw));
       s.settings = Object.assign(defaults().settings, s.settings || {});
       return s;
-    } catch { const s = defaults(); s.startDate = weekStart(today()); return s; }
+    } catch { return defaults(); }
   }
   function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch {} }
   function weekStart(s) { const d = fromIso(s); d.setDate(d.getDate() - d.getDay()); return iso(d); }
@@ -76,7 +82,7 @@
     if (ss.some((s) => s.completed)) return 'done';
     if (ss.length) return 'partial';
     if (dayTypeFor(dateStr) === 'rest') return 'rest';
-    if (dateStr < (state.installDate || state.startDate)) return 'none';
+    if (dateStr < state.startDate) return 'none';
     if (dateStr < today()) return 'missed';
     return 'planned';
   }
@@ -91,7 +97,7 @@
     for (let i = 0; i < 400; i++) {
       const st = dayStatus(d);
       if (st === 'done') streak++;
-      else if (st === 'rest' || st === 'planned') { /* ממשיכים */ }
+      else if (st === 'rest' || st === 'planned' || st === 'none') { /* ממשיכים */ }
       else break;
       d = addDays(d, -1);
     }
@@ -135,6 +141,8 @@
     const st = stats();
     $('home-streak').innerHTML = `🔥 <b>${st.streak}</b>`;
 
+    const t0 = state.startDate;
+    if (t < t0) { renderCountdown(t, t0); return; }
     const dayType = dayTypeFor(t);
     const day = P.DAY_TYPES[dayType];
     const wi = weekInfo(t);
@@ -178,6 +186,40 @@
     maybeSuggestLevelUp(wi);
   }
 
+  function renderCountdown(t, start) {
+    const days = daysBetween(t, start);
+    const map = scheduleForDays();
+    const firstType = map[fromIso(start).getDay()] || Object.values(map)[0];
+    const firstDay = P.DAY_TYPES[firstType] || P.DAY_TYPES.strengthA;
+    $('today-card').innerHTML = `<div class="countdown">
+      <div class="big">${days === 1 ? 'מחר' : `בעוד ${days} ימים`}</div>
+      <p class="lbl">התוכנית מתחילה ב${fmtDate(start)}</p>
+      <p class="muted small">האימון הראשון: ${firstDay.icon} ${firstDay.name} · ${state.settings.duration} דק׳</p>
+      <div class="btn-row">
+        <button class="btn primary" id="btn-preview-first">מה מחכה לי</button>
+        <button class="btn secondary" id="btn-start-now">להתאמן כבר היום</button>
+      </div></div>`;
+    $('btn-preview-first').onclick = () => showPreview(start, firstType);
+    $('btn-start-now').onclick = () => {
+      const dt = dayTypeFor(t) === 'rest' ? firstType : dayTypeFor(t);
+      showPreview(t, dt);
+    };
+    // רצועת השבוע של שבוע הפתיחה
+    const ws = weekStart(start);
+    $('week-strip').innerHTML = Array.from({ length: 7 }, (_, i) => {
+      const d = addDays(ws, i); const dt = P.DAY_TYPES[dayTypeFor(d)];
+      return `<div class="d ${d === start ? 'today' : ''} ${dt.mode === 'rest' ? 'rest' : ''}"><span class="n">${DAY_SHORT[i]}</span><span class="i">${dt.icon}</span>${dt.short}</div>`;
+    }).join('');
+    const st = stats();
+    $('home-stats').innerHTML = `
+      <div class="stat"><span class="v">${state.settings.trainDays.length}</span><span class="l">ימי אימון בשבוע</span></div>
+      <div class="stat"><span class="v">${state.settings.duration}</span><span class="l">דקות ליום</span></div>
+      <div class="stat"><span class="v">${st.workouts}</span><span class="l">אימונים עד כה</span></div>`;
+    $('cycle-card').innerHTML = `<h3>מה עומד לקרות</h3>
+      <p class="muted small">מחזור של 4 שבועות: שבוע 1 בסיס, שבוע 2 עלייה בעומס, שבוע 3 עומס גבוה, שבוע 4 שיא. בסוף המחזור התוכנית מציעה לעלות רמה, ומתחילה מחזור חדש.</p>
+      <div class="week-pills">${[1, 2, 3, 4].map((k) => `<span class="${k === 1 ? 'cur' : ''}">שבוע ${k}</span>`).join('')}</div>`;
+  }
+
   function maybeSuggestLevelUp(wi) {
     // אחרי שהושלם מחזור (שבוע 1 של מחזור > 1), אם ההיענות במחזור הקודם ≥ 75% והרמה לא 3
     if (wi.week !== 1 || wi.cycle <= 1 || state.settings.level >= 3) return;
@@ -219,7 +261,7 @@
     if (!w) return;
     const m = w.meta;
     $('pv-title').textContent = `${m.icon} ${m.name}`;
-    const row = (ex, dur, i) => `<div class="pv-ex"><span class="num">${i + 1}</span><div class="body"><b>${esc(ex.name)}</b><span>${CAT_NAMES[ex.cat]} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span></div><span class="dur">${dur}″</span></div>`;
+    const row = (ex, dur, i) => `<div class="pv-ex"><span class="num">${i + 1}</span><span class="fig-thumb" data-ex="${ex.id}"></span><div class="body"><b>${esc(ex.name)}</b><span>${CAT_NAMES[ex.cat]} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span></div><span class="dur">${dur}″</span></div>`;
     $('pv-body').innerHTML = `
       <div class="pv-summary">
         <div><b>${m.durationMin}</b><span>דקות</span></div>
@@ -232,6 +274,7 @@
       <div class="pv-section"><h3>עיקר האימון <small>${m.rounds} סבבים × ${m.exercises.length} תרגילים${m.finisher ? ` + סבב סיום של ${m.finisher}` : ''}, ${m.roundRest}″ מנוחה בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
       <div class="pv-section"><h3>שחרור ומתיחות</h3>${w.segments.filter((s) => s.kind === 'cooldown').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
       <div class="sticky-bottom"><button class="btn primary block" id="pv-start">התחלת אימון ▶</button></div>`;
+    fillThumbs($('pv-body'));
     $('pv-start').onclick = () => startWorkout(dateStr, dayType);
     $('pv-back').onclick = () => show(prevScreen);
     show('preview');
@@ -295,6 +338,7 @@
     $('pl-kind').textContent = KIND_LABEL[s.kind] + (s.round ? ` · סבב ${s.round}/${s.rounds}` : '');
     $('pl-phase').textContent = s.phase + (s.idx ? ` · תרגיל ${s.idx}/${s.of}` : '');
     $('pl-side').hidden = true;
+    setFigure(s.ex || s.next || (segs[i + 1] && segs[i + 1].ex));
     if (s.ex) {
       $('pl-ex').textContent = s.ex.name;
       $('pl-meta').textContent = `${CAT_NAMES[s.ex.cat]} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
@@ -313,6 +357,17 @@
     else if (s.kind === 'rest' || s.kind === 'roundrest') { beep(523, 0.2); }
     else if (s.kind !== 'prep') beep(700, 0.12);
     renderTime(s.dur);
+  }
+
+  let curFig = null;
+  function setFigure(ex) {
+    const box = $('pl-fig');
+    if (curFig && curFig.stop) curFig.stop();
+    box.innerHTML = '';
+    curFig = null;
+    if (!ex || !window.FIGURES) return;
+    curFig = window.FIGURES.create(ex, { animate: true });
+    box.appendChild(curFig);
   }
 
   function tick() {
@@ -358,6 +413,7 @@
 
   function finishWorkout(completed) {
     clearInterval(player.timer); player.timer = null; player.active = false; releaseWake();
+    if (curFig && curFig.stop) curFig.stop();
     const w = player.workout; const wi = weekInfo(player.date);
     const doneSec = completed ? w.meta.plannedSec : player.doneSec;
     const minRecord = 60; // פחות מדקה לא נרשם
@@ -438,9 +494,30 @@
     $('lib-chips').querySelectorAll('button').forEach((b) => { b.onclick = () => { libCat = b.dataset.c; renderLibrary(); }; });
     const q = ($('lib-search').value || '').trim();
     const list = EX.filter((e) => (libCat === 'all' || e.cat === libCat) && (!q || e.name.includes(q) || e.muscles.includes(q) || e.desc.includes(q)));
-    $('lib-list').innerHTML = list.length ? list.map((e) => `<details class="lib-ex"><summary><b>${esc(e.name)}</b><span class="lvl">${P.LEVELS[e.level]}</span><span class="lvl">${CAT_NAMES[e.cat]}</span></summary><p>${esc(e.desc)}</p><div class="m">שרירים: ${esc(e.muscles)}${e.sides ? ' · תרגיל חד‑צדדי' : ''}</div></details>`).join('') : '<p class="empty">לא נמצאו תרגילים</p>';
+    $('lib-list').innerHTML = list.length ? list.map((e) => `<details class="lib-ex" data-id="${e.id}"><summary><span class="fig-thumb" data-ex="${e.id}"></span><b>${esc(e.name)}</b><span class="lvl">${P.LEVELS[e.level]}</span><span class="lvl">${CAT_NAMES[e.cat]}</span></summary><div class="fig-open"></div><p>${esc(e.desc)}</p><div class="m">שרירים: ${esc(e.muscles)}${e.sides ? ' · תרגיל חד‑צדדי' : ''}</div></details>`).join('') : '<p class="empty">לא נמצאו תרגילים</p>';
+    fillThumbs($('lib-list'));
+    $('lib-list').querySelectorAll('details').forEach((d) => {
+      d.addEventListener('toggle', () => {
+        const box = d.querySelector('.fig-open');
+        if (box.fig && box.fig.stop) box.fig.stop();
+        box.innerHTML = '';
+        if (!d.open) return;
+        const ex = EX.find((x) => x.id === d.dataset.id);
+        box.fig = window.FIGURES.create(ex, { animate: true });
+        box.appendChild(box.fig);
+      });
+    });
   }
   $('lib-search').addEventListener('input', renderLibrary);
+
+  function fillThumbs(root) {
+    if (!window.FIGURES) return;
+    root.querySelectorAll('.fig-thumb[data-ex]').forEach((el) => {
+      if (el.firstChild) return;
+      const ex = EX.find((x) => x.id === el.dataset.ex);
+      if (ex) el.appendChild(window.FIGURES.create(ex, {}));
+    });
+  }
 
   /* ---------- הגדרות ---------- */
   function renderSettings() {
@@ -456,11 +533,16 @@
         s.trainDays.sort((a, b2) => a - b2); save(); renderSettings();
       };
     });
+    $('set-start').value = state.startDate;
     $('set-sound').checked = s.sound; $('set-voice').checked = s.voice; $('set-wake').checked = s.wake;
     $('version').textContent = `גרסה ${APP_VERSION}`;
   }
   $('set-duration').addEventListener('input', (e) => { state.settings.duration = Number(e.target.value); $('set-duration-out').textContent = `${state.settings.duration} דק׳`; save(); });
   $('set-level').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { state.settings.level = Number(b.dataset.v); save(); renderSettings(); }));
+  $('set-start').addEventListener('change', (e) => {
+    if (!e.target.value) { e.target.value = state.startDate; return; }
+    state.startDate = e.target.value; state.cycle = 1; save();
+  });
   $('set-sound').addEventListener('change', (e) => { state.settings.sound = e.target.checked; save(); });
   $('set-voice').addEventListener('change', (e) => { state.settings.voice = e.target.checked; save(); });
   $('set-wake').addEventListener('change', (e) => { state.settings.wake = e.target.checked; save(); });
@@ -481,7 +563,7 @@
     e.target.value = '';
   });
   $('btn-restart-cycle').onclick = async () => {
-    if (await confirmModal('להתחיל מחזור חדש של 4 שבועות מהיום (שבוע 1)? ההיסטוריה נשמרת.')) { state.startDate = weekStart(today()); state.cycle = 1; save(); show('home'); }
+    if (await confirmModal('להתחיל מחזור חדש של 4 שבועות מיום ראשון הקרוב (שבוע 1)? ההיסטוריה נשמרת.')) { state.startDate = nextSunday(); state.cycle = 1; save(); show('home'); }
   };
   $('btn-reset').onclick = async () => {
     if (await confirmModal('לאפס את כל הנתונים, כולל ההיסטוריה וההגדרות? פעולה זו אינה הפיכה.')) { localStorage.removeItem(STORE_KEY); state = load(); show('home'); }

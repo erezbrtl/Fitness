@@ -223,3 +223,24 @@ input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--accent); }
 .modal-box p { font-size: 1.05rem; }
 
 .empty { text-align: center; color: var(--muted); padding: 20px 0; }
+
+/* ---- איורי תרגילים ---- */
+.figure { width: 100%; height: 100%; display: block; overflow: visible; }
+.fig-limb, .fig-torso { fill: none; stroke: var(--fig, #e8eef9); stroke-linecap: round; stroke-linejoin: round; }
+.fig-limb { stroke-width: 8; }
+.fig-torso { stroke-width: 11; }
+.fig-head { fill: var(--fig, #e8eef9); }
+.fig-far { opacity: .42; }
+.fig-mat { stroke: var(--fig-mat, #38bdf8); stroke-width: 3; stroke-linecap: round; opacity: .5; }
+
+.fig-box { width: min(88vw, 340px); height: 152px; flex-shrink: 0; }
+.player .timer-ring { width: min(46vw, 190px); margin: 2px 0; }
+.player .ex-desc { font-size: .9rem; max-width: 36ch; }
+.pv-ex .fig-thumb { width: 62px; height: 44px; flex-shrink: 0; opacity: .9; }
+.lib-ex .fig-thumb { width: 58px; height: 40px; flex-shrink: 0; }
+.lib-ex .fig-open { width: 100%; height: 140px; margin-top: 6px; background: var(--bg2); border-radius: 12px; }
+
+input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; border: 1px solid #263353; background: var(--bg2); color: var(--text); font-size: 1rem; font-family: inherit; }
+.countdown { text-align: center; }
+.countdown .big { font-size: 2.6rem; font-weight: 900; line-height: 1.1; }
+.countdown .lbl { color: var(--muted); }

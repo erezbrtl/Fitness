@@ -108,6 +108,11 @@
           <small class="muted">מתחיל: שכיבות סמיכה על ברכיים, סקוואט רגיל. בינוני: שכיבות סמיכה מלאות, קפיצות. מתקדם: יהלום, פיסטול, גוף חלול.</small>
         </label>
         <label class="field">
+          <span>תאריך תחילת התוכנית</span>
+          <input type="date" id="set-start" />
+          <small class="muted">מכאן נספרים 4 שבועות המחזור. מומלץ להתחיל ביום ראשון.</small>
+        </label>
+        <label class="field">
           <span>ימי אימון בשבוע</span>
           <div class="days" id="set-days"></div>
           <small class="muted">מומלץ 4‑6 ימים עם לפחות יום מנוחה אחד. סוגי האימון מוקצים אוטומטית לפי הימים שנבחרו.</small>
@@ -165,6 +170,7 @@
         <div class="kind-badge" id="pl-kind"></div>
         <div class="ex-name" id="pl-ex"></div>
         <div class="ex-meta" id="pl-meta"></div>
+        <div class="fig-box" id="pl-fig"></div>
         <div class="timer-ring">
           <svg viewBox="0 0 120 120">
             <circle class="ring-bg" cx="60" cy="60" r="54" />
@@ -219,6 +225,7 @@
   </div>
 
   <script src="exercises.js"></script>
+  <script src="figures.js"></script>
   <script src="program.js"></script>
   <script src="app.js"></script>
 </body>
