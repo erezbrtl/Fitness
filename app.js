@@ -1,4 +1,4 @@
-/* קליסטניקס בבית — לוגיקת האפליקציה */
+/* קל לי סטניקס בבית — לוגיקת האפליקציה */
 (function () {
   'use strict';
   const P = window.PROGRAM;
@@ -163,7 +163,7 @@
     if (status === 'done') html += `<div class="done-badge">✓ הושלם</div>`;
     if (w) {
       html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.rounds}${w.meta.finisher ? '+' : ''} סבבים</span><span class="tag">⚡ ${w.meta.work}″ עבודה / ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
-      html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'} ▶</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
+      html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">◀ ${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'}</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
       const cur = durationFor(t);
       const opts = [...new Set([10, 15, 20, 30, state.settings.duration])].sort((x, y) => x - y);
       html += `<div class="quick"><span>היום יש לי:</span>${opts.map((m) => `<button data-min="${m}" class="${m === cur ? 'active' : ''}">${m} דק׳</button>`).join('')}</div>`;
@@ -347,7 +347,7 @@
       <div class="pv-section"><h3>חימום <small>${w.segments.filter((s) => s.kind === 'warmup').length} תרגילים</small></h3>${m.warmup.map((e, i) => row(e, 30, i)).join('')}</div>
       <div class="pv-section"><h3>עיקר האימון <small>${m.rounds} סבבים × ${m.exercises.length} תרגילים${m.finisher ? ` + סבב סיום של ${m.finisher}` : ''}, ${m.roundRest}″ מנוחה בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
       <div class="pv-section"><h3>שחרור ומתיחות</h3>${w.segments.filter((s) => s.kind === 'cooldown').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
-      <div class="sticky-bottom"><button class="btn primary block" id="pv-start">התחלת אימון ▶</button></div>`;
+      <div class="sticky-bottom"><button class="btn primary block" id="pv-start">◀ התחלת אימון</button></div>`;
     $('pv-body').querySelectorAll('.pv-ex').forEach((el) => {
       el.onclick = () => el.classList.toggle('open');
       el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); } };
@@ -506,7 +506,7 @@
     if (!player.active) return;
     player.paused = !player.paused;
     $('screen-player').classList.toggle('paused', player.paused);
-    $('pl-pause').textContent = player.paused ? '▶' : '⏸';
+    $('pl-pause').textContent = player.paused ? '◀' : '⏸';
     if (player.paused) { player.pausedAt = performance.now(); releaseWake(); }
     else { player.segStart += performance.now() - player.pausedAt; requestWake(); ensureAudio(); }
   }
