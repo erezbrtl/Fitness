@@ -38,6 +38,7 @@
     tests: [],             // { date, pushups, plankSec, squats }
     levelPrompted: {},     // מחזורים שכבר הוצעה בהם העלאת רמה
     quick: null,           // אימון קצר להיום בלבד { date, duration }
+    hardPromptAt: null,    // מתי הוצע לאחרונה לרדת רמה בגלל עומס
     backupAt: 0,           // מספר האימונים שהושלמו בגיבוי האחרון
   });
   let state = load();
@@ -206,7 +207,7 @@
       ${testDue(t) ? `<div class="btn-row"><button class="btn secondary" id="btn-go-test">${state.tests.length ? 'הגיע הזמן למבחן כושר' : 'לבצע מבחן כושר ראשון'}</button></div>` : ''}`;
     if (testDue(t)) $('btn-go-test').onclick = () => show('progress');
 
-    maybeSuggestLevelUp(wi);
+    maybeAdjustLevel(wi);
   }
 
   function renderCountdown(t, start) {
@@ -264,20 +265,49 @@
     host.parentNode.insertBefore(note, host);
   }
 
-  function maybeSuggestLevelUp(wi) {
-    // אחרי שהושלם מחזור (שבוע 1 של מחזור > 1), אם ההיענות במחזור הקודם ≥ 75% והרמה לא 3
-    if (wi.week !== 1 || wi.cycle <= 1 || state.settings.level >= 3) return;
+  const avg = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
+
+  /* התאמת רמה: הנוכחות אומרת אם התמדתם, דירוג המאמץ אומר אם זו הרמה הנכונה */
+  function maybeAdjustLevel(wi) {
+    const lvl = state.settings.level;
+
+    // אות מהיר: שלושת האימונים המדורגים האחרונים סומנו "קשה מדי"
+    const rated = state.sessions.filter((s) => s.rpe).sort((a, b) => a.id - b.id);
+    const last3 = rated.slice(-3);
+    const cooled = !state.hardPromptAt || daysBetween(state.hardPromptAt, today()) >= 7;
+    if (lvl > 1 && last3.length === 3 && last3.every((s) => s.rpe >= 5) && cooled) {
+      state.hardPromptAt = today(); save();
+      confirmModal(`שלושת האימונים האחרונים סומנו כ"קשה מדי". לרדת לרמת "${P.LEVELS[lvl - 1]}"? טכניקה נקייה ברמה נמוכה שווה יותר מחזרות עקומות ברמה גבוהה.`)
+        .then((ok) => { if (ok) { state.settings.level--; save(); renderHome(); } });
+      return;
+    }
+
+    // סיכום מחזור: פעם אחת, בשבוע הראשון של מחזור חדש
+    if (wi.week !== 1 || wi.cycle <= 1) return;
     const prev = wi.cycle - 1;
     if (state.levelPrompted[prev]) return;
     const prevStart = addDays(state.startDate, (prev - state.cycle) * 28);
     const prevEnd = addDays(prevStart, 27);
-    const done = state.sessions.filter((s) => s.date >= prevStart && s.date <= prevEnd && s.completed).length;
+    const inCycle = state.sessions.filter((s) => s.date >= prevStart && s.date <= prevEnd);
+    const done = inCycle.filter((s) => s.completed).length;
     const planned = state.settings.trainDays.length * 4;
+    const effort = avg(inCycle.map((s) => s.rpe).filter(Boolean));
     state.levelPrompted[prev] = true; save();
-    if (planned && done / planned >= 0.75) {
-      confirmModal(`כל הכבוד! השלמתם ${done} מתוך ${planned} אימונים במחזור הקודם. להעלות את רמת הקושי ל"${P.LEVELS[state.settings.level + 1]}"?`)
-        .then((ok) => { if (ok) { state.settings.level++; save(); renderHome(); } });
+    if (!planned) return;
+
+    if (effort != null && effort >= 4.3 && lvl > 1) {
+      confirmModal(`במחזור האחרון דירגתם את האימונים כקשים מאוד (ממוצע ${effort.toFixed(1)} מתוך 5). לרדת לרמת "${P.LEVELS[lvl - 1]}" ולבנות בסיס יציב?`)
+        .then((ok) => { if (ok) { state.settings.level--; save(); renderHome(); } });
+      return;
     }
+    if (done / planned < 0.75 || lvl >= 3) return;   // בלי התמדה אין ממה להסיק
+    if (effort != null && effort > 2.9) return;      // התמדתם, והעומס כבר מרגיש נכון — נשארים
+
+    const why = effort != null
+      ? `השלמתם ${done} מתוך ${planned} אימונים, ודירגתם אותם כקלים יחסית (ממוצע ${effort.toFixed(1)} מתוך 5).`
+      : `השלמתם ${done} מתוך ${planned} אימונים במחזור הקודם.`;
+    confirmModal(`${why} להעלות את רמת הקושי ל"${P.LEVELS[lvl + 1]}"?`)
+      .then((ok) => { if (ok) { state.settings.level++; save(); renderHome(); } });
   }
 
   /* ---------- תוכנית ---------- */
@@ -495,8 +525,10 @@
     const w = player.workout; const wi = weekInfo(player.date);
     const doneSec = completed ? w.meta.plannedSec : player.doneSec;
     const minRecord = 60; // פחות מדקה לא נרשם
+    let rec = null;
     if (doneSec >= minRecord) {
-      state.sessions.push({ id: Date.now(), date: today(), dayType: player.dayType, week: wi.week, cycle: wi.cycle, plannedSec: w.meta.plannedSec, doneSec, completed, level: w.meta.level });
+      rec = { id: Date.now(), date: today(), dayType: player.dayType, week: wi.week, cycle: wi.cycle, plannedSec: w.meta.plannedSec, doneSec, completed, level: w.meta.level, rpe: null };
+      state.sessions.push(rec);
       save();
     }
     if (completed) { beep(880, 0.15, 0.3); setTimeout(() => beep(1108, 0.15, 0.3), 160); setTimeout(() => beep(1318, 0.3, 0.3), 320); vibrate([100, 50, 100, 50, 200]); speak('כל הכבוד, סיימתם את האימון'); }
@@ -510,15 +542,37 @@
         <div class="stat"><span class="v">${st.thisWeek}/${st.planned}</span><span class="l">השבוע</span></div>
         <div class="stat"><span class="v">${st.workouts}</span><span class="l">סה״כ</span></div>
       </div>
+      ${rec ? `<div class="rpe" id="rpe-box">
+        <h3>כמה קשה היה?</h3>
+        <div class="rpe-scale">${RPE_LABELS.map((l, i) => `<button data-v="${i + 1}"><b>${i + 1}</b><span>${l}</span></button>`).join('')}</div>
+        <p class="muted small rpe-hint">הדירוג הוא מה שקובע מתי התוכנית תעלה או תוריד לכם רמה.</p>
+      </div>` : ''}
       <p class="muted small" style="margin-top:16px">${completed ? tip() : 'גם אימון קצר עדיף על אפס. נתראה מחר!'}</p>
       <button class="btn primary block" id="sum-home">חזרה לבית</button>`;
+    if (rec) {
+      $('rpe-box').querySelectorAll('button').forEach((btn) => {
+        btn.onclick = () => {
+          rec.rpe = Number(btn.dataset.v); save();
+          $('rpe-box').querySelectorAll('button').forEach((x) => x.classList.toggle('sel', x === btn));
+          $('rpe-box').querySelector('.rpe-hint').textContent = RPE_REPLY[rec.rpe - 1];
+        };
+      });
+    }
     $('sum-home').onclick = () => show('home');
     show('summary');
   }
+  const RPE_LABELS = ['קל מדי', 'קל', 'בדיוק', 'קשה', 'קשה מדי'];
+  const RPE_REPLY = [
+    'נרשם. אם זה יחזור על עצמו, התוכנית תציע לכם לעלות רמה.',
+    'נרשם. יש לכם עוד מקום לגדול בו.',
+    'נרשם. זו בדיוק הרמה הנכונה עבורכם כרגע.',
+    'נרשם. קשה זה טוב — ככה נבנה שריר.',
+    'נרשם. אם זה יחזור על עצמו, נציע לכם לרדת רמה. אין בזה שום בושה.',
+  ];
   const TIPS = [
     'שריפת שומן בטני היא בעיקר עניין של עקביות ותזונה: גירעון קלורי קטן ושינה טובה עושים את ההבדל.',
     'שתו כוס מים אחרי האימון והוסיפו חלבון בארוחה הבאה, זה מה שבונה את השריר.',
-    'אם הרגשתם שהיה קל, זה סימן שהגיע הזמן לרמה הבאה בהגדרות.',
+    'הדירוג שאתם נותנים כאן הוא מה שמכוון את התוכנית. תהיו כנים איתו.',
     'מנוחה היא חלק מהתוכנית. השרירים גדלים בזמן שאתם נחים.',
     'טכניקה טובה בחזרות מעטות עדיפה על הרבה חזרות עקומות.',
     'רשמו לעצמכם איך הרגשתם היום. בעוד חודש תופתעו מההתקדמות.',
@@ -612,7 +666,7 @@
     renderMeasures(); renderTests();
 
     const hist = state.sessions.slice().sort((a, b) => b.id - a.id).slice(0, 30);
-    $('history-list').innerHTML = hist.length ? hist.map((s) => { const dt = P.DAY_TYPES[s.dayType] || P.DAY_TYPES.rest; return `<div class="hist"><span class="ic">${dt.icon}</span><div class="t">${dt.name}<span>${fmtDate(s.date)} · ${P.LEVELS[s.level] || ''} · שבוע ${s.week}</span></div><span class="m">${Math.round(s.doneSec / 60)} דק׳ ${s.completed ? '✅' : '⏸'}</span></div>`; }).join('') : '<p class="empty">עדיין אין אימונים. היום יום טוב להתחיל!</p>';
+    $('history-list').innerHTML = hist.length ? hist.map((s) => { const dt = P.DAY_TYPES[s.dayType] || P.DAY_TYPES.rest; return `<div class="hist"><span class="ic">${dt.icon}</span><div class="t">${dt.name}<span>${fmtDate(s.date)} · ${P.LEVELS[s.level] || ''} · שבוע ${s.week}</span></div><span class="m">${s.rpe ? `<i class="rpe-dot r${s.rpe}">${s.rpe}</i>` : ''}${Math.round(s.doneSec / 60)} דק׳ ${s.completed ? '✅' : '⏸'}</span></div>`; }).join('') : '<p class="empty">עדיין אין אימונים. היום יום טוב להתחיל!</p>';
   }
   function renderCalendar() {
     const { y, m } = calMonth;

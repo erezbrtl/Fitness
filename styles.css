@@ -291,3 +291,20 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .backup-note { display: flex; align-items: center; gap: 10px; background: rgba(245,158,11,.12); border-inline-start: 3px solid var(--warn); border-radius: 12px; padding: 11px 13px; margin-bottom: 14px; }
 .backup-note p { margin: 0; flex: 1; font-size: .85rem; color: #ffdba8; }
 .backup-note button { background: var(--warn); color: #1a1000; font-weight: 800; font-size: .82rem; padding: .4rem .8rem; border-radius: 10px; white-space: nowrap; }
+
+/* ---- דירוג מאמץ ---- */
+.rpe { margin-top: 22px; }
+.rpe h3 { margin-bottom: 10px; }
+.rpe-scale { display: flex; gap: 6px; }
+.rpe-scale button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: .6rem .2rem; border-radius: 12px; background: var(--card); border: 2px solid transparent; transition: transform .1s; }
+.rpe-scale button b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.rpe-scale button span { font-size: .64rem; color: var(--muted); line-height: 1.2; }
+.rpe-scale button:active { transform: scale(.94); }
+.rpe-scale button.sel { border-color: var(--accent); background: var(--card2); }
+.rpe-scale button.sel span { color: var(--text); }
+.rpe-hint { margin-top: 10px; min-height: 2.4em; }
+.rpe-dot { display: inline-flex; align-items: center; justify-content: center; width: 19px; height: 19px; border-radius: 50%; font-size: .68rem; font-weight: 800; font-style: normal; margin-inline-end: 6px; vertical-align: middle; }
+.rpe-dot.r1, .rpe-dot.r2 { background: rgba(56,189,248,.22); color: #7dd3fc; }
+.rpe-dot.r3 { background: rgba(34,197,94,.22); color: #86efac; }
+.rpe-dot.r4 { background: rgba(245,158,11,.22); color: #fcd34d; }
+.rpe-dot.r5 { background: rgba(239,68,68,.22); color: #fca5a5; }
