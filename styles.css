@@ -319,3 +319,6 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .days-view .dv .n { display: block; font-size: 1rem; font-weight: 800; color: var(--text); }
 .days-view .dv .i { display: block; font-size: 1.05rem; margin: 3px 0; }
 .days-view .dv.on { background: rgba(56,189,248,.14); color: #bae6fd; }
+
+.link-btn { display: block; width: 100%; margin-top: 10px; padding: .5rem; font-size: .84rem; font-weight: 600; color: var(--accent); background: none; border-radius: 10px; }
+.link-btn:active { background: var(--card2); }

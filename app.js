@@ -163,14 +163,18 @@
       const cur = durationFor(t);
       const opts = [...new Set([10, 15, 20, 30, state.settings.duration])].sort((x, y) => x - y);
       html += `<div class="quick"><span>היום יש לי:</span>${opts.map((m) => `<button data-min="${m}" class="${m === cur ? 'active' : ''}">${m} דק׳</button>`).join('')}</div>`;
+      if (status !== 'done') html += `<button class="link-btn" id="btn-log-manual">✓ התאמנתי היום — לרשום בלי טיימר</button>`;
     } else {
       html += `<p class="muted">היום יום מנוחה. הגוף בונה שריר בזמן המנוחה — תנו לו את זה. אם בכל זאת מתחשק, אפשר להתאמן.</p>`;
       html += `<div class="btn-row"><button class="btn secondary" id="btn-choose">◀ אימון בכל זאת</button></div>`;
+      if (status !== 'done') html += `<button class="link-btn" id="btn-log-manual">✓ התאמנתי היום — לרשום בלי טיימר</button>`;
     }
     $('today-card').innerHTML = html;
     if (w) {
       $('btn-start-today').onclick = () => startWorkout(t);
       $('btn-preview-today').onclick = () => showPreview(t);
+      const manualBtn = $('btn-log-manual');
+      if (manualBtn) manualBtn.onclick = () => logManualWorkout(t);
       $('today-card').querySelectorAll('.quick button').forEach((b) => {
         b.onclick = () => {
           const m = Number(b.dataset.min);
@@ -178,7 +182,11 @@
           save(); renderHome();
         };
       });
-    } else $('btn-choose').onclick = () => showPreview(t, true);
+    } else {
+      $('btn-choose').onclick = () => showPreview(t, true);
+      const mb = $('btn-log-manual');
+      if (mb) mb.onclick = () => logManualWorkout(t);
+    }
     renderBackupNote();
 
     // רצועת השבוע
@@ -545,10 +553,28 @@
       save();
     }
     if (completed) { beep(880, 0.15, 0.3); setTimeout(() => beep(1108, 0.15, 0.3), 160); setTimeout(() => beep(1318, 0.3, 0.3), 320); vibrate([100, 50, 100, 50, 200]); speak('כל הכבוד, סיימתם את האימון'); }
+    showSummary(w, rec, completed, doneSec);
+  }
+
+  /* רישום ידני: אימון שבוצע בלי הטיימר */
+  async function logManualWorkout(dateStr) {
+    const w = workoutFor(dateStr, true);
+    if (!w) return;
+    const ok = await confirmModal(`לרשום שהתאמנתם היום? ייווסף אימון מלא של ${w.meta.durationMin} דקות ברמת ${w.meta.levelName}.`);
+    if (!ok) return;
+    const wi = weekInfo(dateStr);
+    const rec = { id: Date.now(), date: dateStr, dayType: 'workout', week: wi.week, cycle: wi.cycle,
+      plannedSec: w.meta.plannedSec, doneSec: w.meta.plannedSec, completed: true, level: w.meta.level, rpe: null, manual: true };
+    state.sessions.push(rec);
+    save();
+    showSummary(w, rec, true, w.meta.plannedSec, true);
+  }
+
+  function showSummary(w, rec, completed, doneSec, manual) {
     const st = stats();
     $('summary-body').innerHTML = `
       <div class="big-icon">${completed ? '🏆' : '💪'}</div>
-      <h1>${completed ? 'כל הכבוד! האימון הושלם' : 'אימון חלקי נשמר'}</h1>
+      <h1>${completed ? (manual ? 'האימון נרשם' : 'כל הכבוד! האימון הושלם') : 'אימון חלקי נשמר'}</h1>
       <p class="muted">${w.meta.icon} ${w.meta.name} · ${Math.round(doneSec / 60)} דקות${completed ? '' : ` מתוך ${w.meta.durationMin}`}</p>
       <div class="stats-row">
         <div class="stat"><span class="v">🔥 ${st.streak}</span><span class="l">רצף</span></div>
