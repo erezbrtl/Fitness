@@ -59,10 +59,8 @@
 
   /* ---------- תוכנית ---------- */
   function scheduleForDays() {
-    const days = state.settings.trainDays.slice().sort((a, b) => a - b);
-    const order = P.SCHEDULES[days.length] || [];
     const map = {};
-    days.forEach((d, i) => { map[d] = order[i]; });
+    state.settings.trainDays.forEach((d) => { map[d] = 'workout'; });
     return map; // weekday -> dayType
   }
   function dayTypeFor(dateStr) {
@@ -78,14 +76,10 @@
     const q = state.quick;
     return (q && q.date === dateStr) ? q.duration : state.settings.duration;
   }
-  function workoutFor(dateStr, dayTypeOverride) {
-    const dayType = dayTypeOverride || dayTypeFor(dateStr);
-    if (dayType === 'rest') return null;
+  function workoutFor(dateStr, force) {
+    if (!force && dayTypeFor(dateStr) === 'rest') return null;
     const wi = weekInfo(dateStr);
-    return P.buildWorkout({
-      dayType, level: state.settings.level, week: wi.week,
-      durationMin: durationFor(dateStr), seed: `${weekStart(dateStr)}|${wi.cycle}`,
-    });
+    return P.buildWorkout({ level: state.settings.level, week: wi.week, durationMin: durationFor(dateStr) });
   }
   function sessionsOn(dateStr) { return state.sessions.filter((s) => s.date === dateStr); }
   function dayStatus(dateStr) {
@@ -162,19 +156,20 @@
     let html = `<div class="day-head"><div class="day-icon">${day.icon}</div><div><h2>${day.name}</h2><span class="muted">${day.focus}</span></div></div>`;
     if (status === 'done') html += `<div class="done-badge">✓ הושלם</div>`;
     if (w) {
-      html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.rounds}${w.meta.finisher ? '+' : ''} סבבים</span><span class="tag">⚡ ${w.meta.work}″ עבודה / ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
+      html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.rounds} סבבים</span><span class="tag">⚡ ${w.meta.work}″ עבודה / ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
+      html += `<ol class="circuit">${w.meta.slots.map((s) => `<li><span class="ci">${s.icon}</span><b>${esc(s.ex.name)}</b></li>`).join('')}</ol>`;
       html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">◀ ${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'}</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
       const cur = durationFor(t);
       const opts = [...new Set([10, 15, 20, 30, state.settings.duration])].sort((x, y) => x - y);
       html += `<div class="quick"><span>היום יש לי:</span>${opts.map((m) => `<button data-min="${m}" class="${m === cur ? 'active' : ''}">${m} דק׳</button>`).join('')}</div>`;
     } else {
-      html += `<p class="muted">היום יום מנוחה. הגוף בונה שריר בזמן המנוחה — תנו לו את זה. אם בכל זאת מתחשק, אפשר לבחור אימון מהתוכנית.</p>`;
-      html += `<div class="btn-row"><button class="btn secondary" id="btn-choose">בחירת אימון אחר</button></div>`;
+      html += `<p class="muted">היום יום מנוחה. הגוף בונה שריר בזמן המנוחה — תנו לו את זה. אם בכל זאת מתחשק, אפשר להתאמן.</p>`;
+      html += `<div class="btn-row"><button class="btn secondary" id="btn-choose">◀ אימון בכל זאת</button></div>`;
     }
     $('today-card').innerHTML = html;
     if (w) {
-      $('btn-start-today').onclick = () => startWorkout(t, dayType);
-      $('btn-preview-today').onclick = () => showPreview(t, dayType);
+      $('btn-start-today').onclick = () => startWorkout(t);
+      $('btn-preview-today').onclick = () => showPreview(t);
       $('today-card').querySelectorAll('.quick button').forEach((b) => {
         b.onclick = () => {
           const m = Number(b.dataset.min);
@@ -182,7 +177,7 @@
           save(); renderHome();
         };
       });
-    } else $('btn-choose').onclick = () => show('plan');
+    } else $('btn-choose').onclick = () => showPreview(t, true);
     renderBackupNote();
 
     // רצועת השבוע
@@ -212,22 +207,19 @@
 
   function renderCountdown(t, start) {
     const days = daysBetween(t, start);
-    const map = scheduleForDays();
-    const firstType = map[fromIso(start).getDay()] || Object.values(map)[0];
-    const firstDay = P.DAY_TYPES[firstType] || P.DAY_TYPES.strengthA;
+    const firstDay = P.DAY_TYPES.workout;
+    const slots = P.circuitFor(state.settings.level);
     $('today-card').innerHTML = `<div class="countdown">
       <div class="big">${days === 1 ? 'מחר' : `בעוד ${days} ימים`}</div>
       <p class="lbl">התוכנית מתחילה ב${fmtDate(start)}</p>
-      <p class="muted small">האימון הראשון: ${firstDay.icon} ${firstDay.name} · ${state.settings.duration} דק׳</p>
+      <p class="muted small">${firstDay.icon} ${state.settings.duration} דקות · ${slots.length} תרגילים · רמת ${P.LEVELS[state.settings.level]}</p>
+      <ol class="circuit">${slots.map((s) => `<li><span class="ci">${s.icon}</span><b>${esc(s.ex.name)}</b></li>`).join('')}</ol>
       <div class="btn-row">
         <button class="btn primary" id="btn-preview-first">מה מחכה לי</button>
         <button class="btn secondary" id="btn-start-now">להתאמן כבר היום</button>
       </div></div>`;
-    $('btn-preview-first').onclick = () => showPreview(start, firstType);
-    $('btn-start-now').onclick = () => {
-      const dt = dayTypeFor(t) === 'rest' ? firstType : dayTypeFor(t);
-      showPreview(t, dt);
-    };
+    $('btn-preview-first').onclick = () => showPreview(start, true);
+    $('btn-start-now').onclick = () => showPreview(t, true);
     // רצועת השבוע של שבוע הפתיחה
     const ws = weekStart(start);
     $('week-strip').innerHTML = Array.from({ length: 7 }, (_, i) => {
@@ -312,26 +304,33 @@
 
   /* ---------- תוכנית ---------- */
   function renderPlan() {
+    const slots = P.circuitFor(state.settings.level);
     const map = scheduleForDays();
     const t = today();
-    $('plan-list').innerHTML = Array.from({ length: 7 }, (_, wd) => {
-      const dt = P.DAY_TYPES[map[wd] || 'rest'];
-      const isRest = dt.mode === 'rest';
-      return `<div class="plan-day ${isRest ? 'rest' : ''}" data-wd="${wd}"><div class="ic">${dt.icon}</div><div class="t"><b>${dt.name}</b><span>${dt.focus}</span></div><div class="dn">${DAY_NAMES[wd]}</div></div>`;
-    }).join('');
-    $('plan-list').querySelectorAll('.plan-day:not(.rest)').forEach((el) => {
-      el.onclick = () => {
-        const wd = Number(el.dataset.wd);
-        // תאריך היום המתאים בשבוע הנוכחי
-        const d = addDays(weekStart(t), wd);
-        showPreview(d, map[wd]);
-      };
-    });
+    const p = P.PARAMS[state.settings.level];
+
+    $('plan-list').innerHTML = `
+      <div class="card">
+        <h3>חמשת התרגילים</h3>
+        <p class="muted small">אותם חמישה תרגילים בכל אימון. מה שמשתנה זו הגרסה שמתאימה לרמה שלכם, וזמני העבודה שעולים לאורך המחזור. ככה לא צריך לזכור כלום — רק להתחיל.</p>
+        <ol class="circuit big">${slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b>${esc(s.ex.name)}</b><span>${esc(s.why)}</span></div></li>`).join('')}</ol>
+        <p class="muted small">ברמת ${P.LEVELS[state.settings.level]} מתחילים ב‑${p.work}″ עבודה ו‑${p.rest}″ מנוחה, ומשם העומס עולה בכל שבוע במחזור. ניתן לשנות רמה בהגדרות.</p>
+      </div>
+      <div class="card">
+        <h3>ימי האימון</h3>
+        <div class="days-view">${Array.from({ length: 7 }, (_, wd) => {
+          const on = !!map[wd];
+          return `<div class="dv ${on ? 'on' : ''}"><span class="n">${DAY_SHORT[wd]}</span><span class="i">${on ? '💪' : '😴'}</span>${on ? 'אימון' : 'מנוחה'}</div>`;
+        }).join('')}</div>
+        <p class="muted small" style="margin-top:10px">${state.settings.trainDays.length} ימי אימון בשבוע. ניתן לשנות בהגדרות.</p>
+        <button class="btn primary block" id="plan-preview">◀ לראות את אימון היום</button>
+      </div>`;
+    $('plan-preview').onclick = () => showPreview(t, true);
   }
 
   /* ---------- תצוגה מקדימה ---------- */
-  function showPreview(dateStr, dayType) {
-    const w = workoutFor(dateStr, dayType);
+  function showPreview(dateStr, force) {
+    const w = workoutFor(dateStr, force);
     if (!w) return;
     const m = w.meta;
     $('pv-title').textContent = `${m.icon} ${m.name}`;
@@ -344,15 +343,15 @@
         <div><b>${m.rest}″</b><span>מנוחה</span></div>
       </div>
       <p class="muted small">${esc(m.focus)} · רמה: ${m.levelName} · שבוע ${m.week} (${m.weekLabel}) · ${fmtDate(dateStr)}</p>
-      <div class="pv-section"><h3>חימום <small>${w.segments.filter((s) => s.kind === 'warmup').length} תרגילים</small></h3>${m.warmup.map((e, i) => row(e, 30, i)).join('')}</div>
-      <div class="pv-section"><h3>עיקר האימון <small>${m.rounds} סבבים × ${m.exercises.length} תרגילים${m.finisher ? ` + סבב סיום של ${m.finisher}` : ''}, ${m.roundRest}″ מנוחה בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
+      <div class="pv-section"><h3>חימום <small>${m.warmup.length} תרגילים</small></h3>${w.segments.filter((s) => s.kind === 'warmup').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
+      <div class="pv-section"><h3>עיקר האימון <small>${m.rounds} סבבים × ${m.exercises.length} תרגילים, ${m.roundRest}″ מנוחה בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
       <div class="pv-section"><h3>שחרור ומתיחות</h3>${w.segments.filter((s) => s.kind === 'cooldown').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
       <div class="sticky-bottom"><button class="btn primary block" id="pv-start">◀ התחלת אימון</button></div>`;
     $('pv-body').querySelectorAll('.pv-ex').forEach((el) => {
       el.onclick = () => el.classList.toggle('open');
       el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.classList.toggle('open'); } };
     });
-    $('pv-start').onclick = () => startWorkout(dateStr, dayType);
+    $('pv-start').onclick = () => startWorkout(dateStr, force);
     $('pv-back').onclick = () => show(prevScreen);
     show('preview');
   }
@@ -394,11 +393,11 @@
   const player = { active: false, paused: false, workout: null, idx: 0, segStart: 0, pausedAt: 0, timer: null, lastWhole: -1, sideDone: false, doneSec: 0, date: null, dayType: null };
   const RING = 2 * Math.PI * 54;
 
-  function startWorkout(dateStr, dayType) {
-    const w = workoutFor(dateStr, dayType);
+  function startWorkout(dateStr, force) {
+    const w = workoutFor(dateStr, force);
     if (!w) return;
     ensureAudio();
-    Object.assign(player, { active: true, paused: false, workout: w, idx: 0, pausedAt: 0, lastWhole: -1, sideDone: false, doneSec: 0, date: dateStr, dayType });
+    Object.assign(player, { active: true, paused: false, workout: w, idx: 0, pausedAt: 0, lastWhole: -1, sideDone: false, doneSec: 0, date: dateStr, dayType: 'workout' });
     $('pl-name').textContent = `${w.meta.icon} ${w.meta.name}`;
     $('pl-total').textContent = fmtTime(w.meta.plannedSec);
     show('player');
@@ -457,6 +456,7 @@
     const m = player.workout.meta;
     m.exercises = m.exercises.map((e) => (e === ex ? rep : e));
     m.warmup = m.warmup.map((e) => (e === ex ? rep : e));
+    m.slots = m.slots.map((s) => (s.ex === ex ? Object.assign({}, s, { ex: rep }) : s));
     const el = (performance.now() - player.segStart) / 1000;
     enterSegment(player.idx, { silent: true, elapsed: Math.min(el, 2) });
   }
@@ -666,7 +666,7 @@
     renderMeasures(); renderTests();
 
     const hist = state.sessions.slice().sort((a, b) => b.id - a.id).slice(0, 30);
-    $('history-list').innerHTML = hist.length ? hist.map((s) => { const dt = P.DAY_TYPES[s.dayType] || P.DAY_TYPES.rest; return `<div class="hist"><span class="ic">${dt.icon}</span><div class="t">${dt.name}<span>${fmtDate(s.date)} · ${P.LEVELS[s.level] || ''} · שבוע ${s.week}</span></div><span class="m">${s.rpe ? `<i class="rpe-dot r${s.rpe}">${s.rpe}</i>` : ''}${Math.round(s.doneSec / 60)} דק׳ ${s.completed ? '✅' : '⏸'}</span></div>`; }).join('') : '<p class="empty">עדיין אין אימונים. היום יום טוב להתחיל!</p>';
+    $('history-list').innerHTML = hist.length ? hist.map((s) => { const dt = P.DAY_TYPES[s.dayType] || P.DAY_TYPES.workout; return `<div class="hist"><span class="ic">${dt.icon}</span><div class="t">${dt.name}<span>${fmtDate(s.date)} · ${P.LEVELS[s.level] || ''} · שבוע ${s.week}</span></div><span class="m">${s.rpe ? `<i class="rpe-dot r${s.rpe}">${s.rpe}</i>` : ''}${Math.round(s.doneSec / 60)} דק׳ ${s.completed ? '✅' : '⏸'}</span></div>`; }).join('') : '<p class="empty">עדיין אין אימונים. היום יום טוב להתחיל!</p>';
   }
   function renderCalendar() {
     const { y, m } = calMonth;
