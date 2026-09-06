@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '1.0.0';
+  const APP_VERSION = '2.6.0';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -414,6 +414,7 @@
     const w = workoutFor(dateStr, force);
     if (!w) return;
     ensureAudio();
+    hideUpdateBar();
     Object.assign(player, { active: true, paused: false, workout: w, idx: 0, pausedAt: 0, lastWhole: -1, sideDone: false, doneSec: 0, date: dateStr, dayType: 'workout' });
     $('pl-name').textContent = `${w.meta.icon} ${w.meta.name}`;
     $('pl-total').textContent = fmtTime(w.meta.plannedSec);
@@ -554,6 +555,7 @@
     }
     if (completed) { beep(880, 0.15, 0.3); setTimeout(() => beep(1108, 0.15, 0.3), 160); setTimeout(() => beep(1318, 0.3, 0.3), 320); vibrate([100, 50, 100, 50, 200]); speak('כל הכבוד, סיימתם את האימון'); }
     showSummary(w, rec, completed, doneSec);
+    showUpdateBar();
   }
 
   /* רישום ידני: אימון שבוצע בלי הטיימר */
@@ -759,6 +761,9 @@
     $('set-start').value = state.startDate;
     $('set-sound').checked = s.sound; $('set-voice').checked = s.voice; $('set-wake').checked = s.wake;
     $('version').textContent = `גרסה ${APP_VERSION}`;
+    runningVersion().then((v) => {
+      if (v) $('version').textContent = `גרסה ${v.replace('calisthenics-v', '')}`;
+    });
   }
   $('set-duration').addEventListener('input', (e) => { state.settings.duration = Number(e.target.value); $('set-duration-out').textContent = `${state.settings.duration} דק׳`; save(); });
   $('set-level').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { state.settings.level = Number(b.dataset.v); save(); renderSettings(); }));
@@ -801,8 +806,66 @@
   let deferredInstall = null;
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; $('btn-install').hidden = false; });
   $('btn-install').onclick = async () => { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; $('btn-install').hidden = true; };
+
+  /* ---------- עדכוני גרסה ---------- */
+  let waitingWorker = null;   // הגרסה החדשה, מותקנת וממתינה לאישור
+  let updateDismissed = false;
+  const UPDATE_CHECK_MS = 30 * 60 * 1000;
+
+  function showUpdateBar() {
+    // לא קוטעים אימון שרץ — ההודעה תחכה לסופו
+    if (!waitingWorker || updateDismissed || player.active) return;
+    $('update-bar').hidden = false;
+  }
+  function hideUpdateBar() { $('update-bar').hidden = true; }
+
+  $('ub-later').onclick = () => { updateDismissed = true; hideUpdateBar(); };
+  $('ub-refresh').onclick = () => {
+    if (!waitingWorker) return location.reload();
+    $('ub-refresh').textContent = 'מרענן…';
+    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+  };
+
+  function watchWorker(reg) {
+    if (reg.waiting && navigator.serviceWorker.controller) { waitingWorker = reg.waiting; showUpdateBar(); }
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      if (!nw) return;
+      nw.addEventListener('statechange', () => {
+        // "installed" עם controller קיים = יש גרסה קודמת שרצה, כלומר זה עדכון
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) { waitingWorker = nw; showUpdateBar(); }
+      });
+    });
+  }
+
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloading) return;
+      reloading = true;
+      location.reload();
+    });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then((reg) => {
+        watchWorker(reg);
+        setInterval(() => reg.update().catch(() => {}), UPDATE_CHECK_MS);
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') reg.update().catch(() => {});
+        });
+      }).catch(() => {});
+    });
+  }
+
+  /* הגרסה שרצה בפועל, לתצוגה בהגדרות */
+  function runningVersion() {
+    return new Promise((resolve) => {
+      const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+      if (!sw) return resolve(null);
+      const ch = new MessageChannel();
+      const t = setTimeout(() => resolve(null), 1200);
+      ch.port1.onmessage = (e) => { clearTimeout(t); resolve(e.data); };
+      sw.postMessage({ type: 'GET_VERSION' }, [ch.port2]);
+    });
   }
 
   /* ---------- הפעלה ---------- */
