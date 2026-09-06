@@ -101,6 +101,7 @@ input[type=search] { width: 100%; padding: .75rem 1rem; border-radius: 14px; bor
 .pv-ex .num { width: 26px; height: 26px; border-radius: 50%; background: var(--card2); display: inline-flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 800; flex-shrink: 0; }
 .pv-ex .body { flex: 1; }
 .pv-ex .body b { display: block; }
+.pv-ex .body b[dir=ltr] { text-align: right; }
 .pv-ex .body span { font-size: .8rem; color: var(--muted); display: block; }
 .pv-ex .dur { font-weight: 800; color: var(--accent); white-space: nowrap; }
 .pv-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
@@ -303,6 +304,8 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .circuit li { display: flex; align-items: center; gap: 9px; background: var(--bg2); border-radius: 11px; padding: 8px 11px; }
 .circuit .ci { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
 .circuit b { font-weight: 700; font-size: .92rem; }
+.circuit .cb { display: flex; flex-direction: column; gap: 1px; }
+.circuit .cb span { font-size: .74rem; color: var(--muted); }
 .circuit.big li { padding: 11px 13px; align-items: flex-start; }
 .circuit.big .ci { font-size: 1.3rem; width: 28px; }
 .circuit.big .cb { display: flex; flex-direction: column; gap: 2px; }

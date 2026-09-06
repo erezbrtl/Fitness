@@ -146,7 +146,8 @@
     $('home-streak').innerHTML = `🔥 <b>${st.streak}</b>`;
 
     const t0 = state.startDate;
-    if (t < t0) { renderCountdown(t, t0); return; }
+    // הספירה לאחור נעלמת ברגע שהתאמנתם — אחרת אימון מוקדם נשמר אך לא מוצג
+    if (t < t0 && !sessionsOn(t).length) { renderCountdown(t, t0); return; }
     const dayType = dayTypeFor(t);
     const day = P.DAY_TYPES[dayType];
     const wi = weekInfo(t);
@@ -154,9 +155,10 @@
     const w = workoutFor(t);
     let html = `<div class="day-head"><div class="day-icon">${day.icon}</div><div><h2>${day.name}</h2><span class="muted">${day.focus}</span></div></div>`;
     if (status === 'done') html += `<div class="done-badge">✓ הושלם</div>`;
+    if (t < t0) html += `<p class="muted small">התאמנתם לפני תחילת התוכנית — כל הכבוד. המחזור הרשמי מתחיל ב${fmtDate(t0)}.</p>`;
     if (w) {
       html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.rounds} סבבים</span><span class="tag">⚡ ${w.meta.ready}″ היכון · ${w.meta.work}″ עבודה · ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
-      html += `<ol class="circuit">${w.meta.slots.map((s) => `<li><span class="ci">${s.icon}</span><b>${esc(s.ex.name)}</b></li>`).join('')}</ol>`;
+      html += `<ol class="circuit">${w.meta.slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>`;
       html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">◀ ${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'}</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
       const cur = durationFor(t);
       const opts = [...new Set([10, 15, 20, 30, state.settings.duration])].sort((x, y) => x - y);
@@ -212,7 +214,7 @@
       <div class="big">${days === 1 ? 'מחר' : `בעוד ${days} ימים`}</div>
       <p class="lbl">התוכנית מתחילה ב${fmtDate(start)}</p>
       <p class="muted small">${firstDay.icon} ${state.settings.duration} דקות · ${slots.length} תרגילים · רמת ${P.LEVELS[state.settings.level]}</p>
-      <ol class="circuit">${slots.map((s) => `<li><span class="ci">${s.icon}</span><b>${esc(s.ex.name)}</b></li>`).join('')}</ol>
+      <ol class="circuit">${slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>
       <div class="btn-row">
         <button class="btn primary" id="btn-preview-first">מה מחכה לי</button>
         <button class="btn secondary" id="btn-start-now">להתאמן כבר היום</button>
@@ -312,7 +314,7 @@
       <div class="card">
         <h3>חמשת התרגילים</h3>
         <p class="muted small">אותם חמישה תרגילים בכל אימון. מה שמשתנה זו הגרסה שמתאימה לרמה שלכם, וזמני העבודה שעולים לאורך המחזור. ככה לא צריך לזכור כלום — רק להתחיל.</p>
-        <ol class="circuit big">${slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b>${esc(s.ex.name)}</b><span>${esc(s.why)}</span></div></li>`).join('')}</ol>
+        <ol class="circuit big">${slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)} · ${esc(s.why)}</span></div></li>`).join('')}</ol>
         <p class="muted small">ברמת ${P.LEVELS[state.settings.level]} מתחילים ב‑${p.work}″ עבודה ו‑${p.rest}″ מנוחה, ומשם העומס עולה בכל שבוע במחזור. ניתן לשנות רמה בהגדרות.</p>
       </div>
       <div class="card">
@@ -333,7 +335,7 @@
     if (!w) return;
     const m = w.meta;
     $('pv-title').textContent = `${m.icon} ${m.name}`;
-    const row = (ex, dur, i) => `<div class="pv-ex" tabindex="0"><span class="num">${i + 1}</span><div class="body"><b>${esc(ex.name)}</b><span>${CAT_NAMES[ex.cat]} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span><div class="how"><ol class="steps">${ex.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(ex.tip)}</p></div></div><span class="dur">${dur}″</span></div>`;
+    const row = (ex, dur, i) => `<div class="pv-ex" tabindex="0"><span class="num">${i + 1}</span><div class="body"><b dir="ltr">${esc(ex.en)}</b><span>${esc(ex.name)} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span><div class="how"><ol class="steps">${ex.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(ex.tip)}</p></div></div><span class="dur">${dur}″</span></div>`;
     $('pv-body').innerHTML = `
       <div class="pv-summary">
         <div><b>${m.durationMin}</b><span>דקות</span></div>
@@ -372,9 +374,17 @@
       const t = audioCtx.currentTime; o.start(t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.stop(t + dur);
     } catch {}
   }
-  function speak(text) {
+  function speak(text, lang) {
     if (!state.settings.voice || !('speechSynthesis' in window)) return;
-    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'he-IL'; u.rate = 1.05; speechSynthesis.speak(u); } catch {}
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang || 'he-IL';
+      u.rate = 1.05;
+      const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
+      if (v) u.voice = v;
+      speechSynthesis.speak(u);
+    } catch {}
   }
   if (navigator.vibrate) { /* זמין */ }
   const vibrate = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch {} };
@@ -421,19 +431,21 @@
     $('pl-swap').hidden = !s.ex;
     const upcoming = s.next || (segs[i + 1] && segs[i + 1].ex) || (segs[i + 2] && segs[i + 2].ex) || null;
     if (s.ex) {
-      $('pl-ex').textContent = s.ex.name;
-      $('pl-meta').textContent = `${CAT_NAMES[s.ex.cat]} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
+      $('pl-ex').textContent = s.ex.en;
+      $('pl-ex').dir = 'ltr';
+      $('pl-meta').textContent = `${s.ex.name} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
       setHow(s.ex, false);
       const announced = s.kind === 'work' && segs[i - 1] && segs[i - 1].kind === 'ready' && segs[i - 1].ex === s.ex;
-      if (!opts.silent && !announced) speak(s.ex.name);
+      if (!opts.silent && !announced) speak(s.ex.en, 'en-US');
     } else {
       $('pl-ex').textContent = s.kind === 'prep' ? 'מוכנים?' : 'מנוחה';
+      $('pl-ex').dir = 'rtl';
       $('pl-meta').textContent = s.kind === 'prep' ? 'עמדו על המזרן, נשמו עמוק' : 'נשמו, שתו מים אם צריך';
       setHow(upcoming, true);
       if (s.kind !== 'prep' && !opts.silent) speak('מנוחה');
     }
     const next = upcoming;
-    $('pl-next').innerHTML = next && next !== s.ex ? `הבא: <b>${esc(next.name)}</b>` : (i === segs.length - 1 ? 'זהו — התרגיל האחרון!' : '');
+    $('pl-next').innerHTML = next && next !== s.ex ? `הבא: <b dir="ltr">${esc(next.en)}</b>` : (i === segs.length - 1 ? 'זהו — התרגיל האחרון!' : '');
     $('pl-next').hidden = !$('pl-next').innerHTML;
     if (!opts.silent) {
       if (s.kind === 'work') { beep(1046, 0.25, 0.35); vibrate(120); }
