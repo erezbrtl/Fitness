@@ -1,0 +1,9 @@
+# הגדרות שרת ל‑Netlify
+
+# ה‑Service Worker חייב להיבדק מול השרת בכל טעינה,
+# אחרת עדכונים לאפליקציה עלולים להגיע באיחור של עד יממה
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
