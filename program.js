@@ -30,9 +30,9 @@
 
   /* זמני עבודה ומנוחה לפי רמה (שניות) */
   const PARAMS = {
-    1: { work:30, rest:20, roundRest:45 },
-    2: { work:40, rest:15, roundRest:40 },
-    3: { work:45, rest:15, roundRest:30 },
+    1: { work:30, rest:10, roundRest:45 },
+    2: { work:40, rest:10, roundRest:40 },
+    3: { work:45, rest:10, roundRest:30 },
   };
 
   /* מחזור של 4 שבועות — העומס עולה בהדרגה */
@@ -70,7 +70,7 @@
 
     const p = PARAMS[level];
     const work = p.work + mods.work;
-    const rest = Math.max(10, p.rest + mods.rest);
+    const rest = Math.max(5, p.rest + mods.rest);
     const roundRest = p.roundRest;
 
     const slots = circuitFor(level);
