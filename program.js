@@ -44,6 +44,7 @@
   };
 
   const LEVELS = { 1:'מתחיל', 2:'בינוני', 3:'מתקדם' };
+  const READY = 10;   // שניות היכון לפני כל תרגיל בסבב — זמן להיכנס לתנוחה
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   /* התרגילים של הרמה הנוכחית */
@@ -74,7 +75,7 @@
 
     const slots = circuitFor(level);
     const exercises = slots.map((s) => s.ex);
-    const roundTime = exercises.length * (work + rest) - rest;
+    const roundTime = exercises.length * (READY + work) + (exercises.length - 1) * rest;
     let rounds = clamp(Math.floor((mainSec + roundRest) / (roundTime + roundRest)), 1, 8);
 
     const segments = [];
@@ -91,9 +92,9 @@
     let usedMain = rounds * roundTime + (rounds - 1) * roundRest;
     let leftover = Math.max(0, mainSec - usedMain);
     let finisher = 0;
-    if (leftover >= roundRest + work) {
-      finisher = clamp(Math.floor((leftover - roundRest + rest) / (work + rest)), 1, exercises.length);
-      usedMain += roundRest + finisher * (work + rest) - rest;
+    if (leftover >= roundRest + READY + work) {
+      finisher = clamp(Math.floor((leftover - roundRest + rest) / (READY + work + rest)), 1, exercises.length);
+      usedMain += roundRest + finisher * (READY + work) + (finisher - 1) * rest;
       leftover = Math.max(0, mainSec - usedMain);
     }
     const totalRounds = rounds + (finisher ? 1 : 0);
@@ -102,6 +103,7 @@
       const list = isFin ? exercises.slice(0, finisher) : exercises;
       const phase = isFin ? 'סבב סיום' : 'עיקר';
       list.forEach((ex, i) => {
+        push({ kind:'ready', ex, dur:READY, phase, round:rd, rounds:totalRounds, idx:i + 1, of:list.length });
         push({ kind:'work', ex, dur:work, phase, round:rd, rounds:totalRounds, idx:i + 1, of:list.length });
         if (i < list.length - 1) push({ kind:'rest', ex:null, dur:rest, phase, round:rd, rounds:totalRounds, next:list[i + 1] });
       });
@@ -121,7 +123,7 @@
         dayType:'workout', name:DAY_TYPES.workout.name, icon:DAY_TYPES.workout.icon,
         color:DAY_TYPES.workout.color, focus:DAY_TYPES.workout.focus,
         level, levelName:LEVELS[level], week, weekLabel:mods.label,
-        work, rest, roundRest, rounds:totalRounds, finisher, slots, exercises,
+        work, rest, ready:READY, roundRest, rounds:totalRounds, finisher, slots, exercises,
         warmup:warmList, cooldown:coolList, plannedSec, durationMin: Math.round(plannedSec / 60),
       },
     };

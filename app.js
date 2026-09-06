@@ -9,7 +9,7 @@
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
   const CAT_NAMES = { warmup:'חימום', push:'דחיפה', pull:'משיכה', legs:'רגליים', core:'ליבה', cardio:'קרדיו', mobility:'ניידות', cooldown:'שחרור' };
-  const KIND_LABEL = { prep:'התכוננו', warmup:'חימום', work:'עבודה', rest:'מנוחה', roundrest:'מנוחה בין סבבים', cooldown:'שחרור' };
+  const KIND_LABEL = { prep:'התכוננו', warmup:'חימום', ready:'היכון', work:'עבודה', rest:'מנוחה', roundrest:'מנוחה בין סבבים', cooldown:'שחרור' };
 
   /* ---------- תאריכים ---------- */
   const pad = (n) => String(n).padStart(2, '0');
@@ -155,7 +155,7 @@
     let html = `<div class="day-head"><div class="day-icon">${day.icon}</div><div><h2>${day.name}</h2><span class="muted">${day.focus}</span></div></div>`;
     if (status === 'done') html += `<div class="done-badge">✓ הושלם</div>`;
     if (w) {
-      html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.rounds} סבבים</span><span class="tag">⚡ ${w.meta.work}″ עבודה / ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
+      html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.rounds} סבבים</span><span class="tag">⚡ ${w.meta.ready}″ היכון · ${w.meta.work}″ עבודה · ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
       html += `<ol class="circuit">${w.meta.slots.map((s) => `<li><span class="ci">${s.icon}</span><b>${esc(s.ex.name)}</b></li>`).join('')}</ol>`;
       html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">◀ ${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'}</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
       const cur = durationFor(t);
@@ -343,7 +343,7 @@
       </div>
       <p class="muted small">${esc(m.focus)} · רמה: ${m.levelName} · שבוע ${m.week} (${m.weekLabel}) · ${fmtDate(dateStr)}</p>
       <div class="pv-section"><h3>חימום <small>${m.warmup.length} תרגילים</small></h3>${w.segments.filter((s) => s.kind === 'warmup').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
-      <div class="pv-section"><h3>עיקר האימון <small>${m.rounds} סבבים × ${m.exercises.length} תרגילים, ${m.roundRest}″ מנוחה בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
+      <div class="pv-section"><h3>עיקר האימון <small>${m.rounds} סבבים × ${m.exercises.length} תרגילים · ${m.ready}″ היכון לפני כל תרגיל · ${m.roundRest}″ בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
       <div class="pv-section"><h3>שחרור ומתיחות</h3>${w.segments.filter((s) => s.kind === 'cooldown').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
       <div class="sticky-bottom"><button class="btn primary block" id="pv-start">◀ התחלת אימון</button></div>`;
     $('pv-body').querySelectorAll('.pv-ex').forEach((el) => {
@@ -424,7 +424,8 @@
       $('pl-ex').textContent = s.ex.name;
       $('pl-meta').textContent = `${CAT_NAMES[s.ex.cat]} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
       setHow(s.ex, false);
-      if (!opts.silent) speak(s.ex.name);
+      const announced = s.kind === 'work' && segs[i - 1] && segs[i - 1].kind === 'ready' && segs[i - 1].ex === s.ex;
+      if (!opts.silent && !announced) speak(s.ex.name);
     } else {
       $('pl-ex').textContent = s.kind === 'prep' ? 'מוכנים?' : 'מנוחה';
       $('pl-meta').textContent = s.kind === 'prep' ? 'עמדו על המזרן, נשמו עמוק' : 'נשמו, שתו מים אם צריך';
@@ -436,6 +437,7 @@
     $('pl-next').hidden = !$('pl-next').innerHTML;
     if (!opts.silent) {
       if (s.kind === 'work') { beep(1046, 0.25, 0.35); vibrate(120); }
+      else if (s.kind === 'ready') { beep(784, 0.14, 0.22); }
       else if (s.kind === 'rest' || s.kind === 'roundrest') { beep(523, 0.2); }
       else if (s.kind !== 'prep') beep(700, 0.12);
     }
@@ -488,7 +490,7 @@
       player.lastWhole = whole;
       renderTime(whole);
       if (whole > 0 && whole <= 3 && s.kind !== 'cooldown') { beep(660, 0.08, 0.2); $('pl-time').classList.remove('flash'); void $('pl-time').offsetWidth; $('pl-time').classList.add('flash'); }
-      if (s.ex && s.ex.sides && !player.sideDone && el >= s.dur / 2) {
+      if (s.kind === 'work' && s.ex && s.ex.sides && !player.sideDone && el >= s.dur / 2) {
         player.sideDone = true; $('pl-side').hidden = false; beep(1318, 0.15, 0.3); beep(1318, 0.15, 0.3); vibrate([60, 60, 60]); speak('החליפו צד');
       }
     }
