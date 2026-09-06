@@ -114,7 +114,7 @@
 
   /* ---------- ניווט ---------- */
   const $ = (id) => document.getElementById(id);
-  const screens = ['home', 'plan', 'progress', 'library', 'settings', 'player', 'summary', 'preview'];
+  const screens = ['home', 'plan', 'progress', 'settings', 'player', 'summary', 'preview'];
   function show(name) {
     screens.forEach((s) => $('screen-' + s).classList.toggle('active', s === name));
     document.querySelectorAll('#tabbar button').forEach((b) => b.classList.toggle('active', b.dataset.screen === name));
@@ -123,7 +123,6 @@
     if (name === 'home') renderHome();
     if (name === 'plan') renderPlan();
     if (name === 'progress') renderProgress();
-    if (name === 'library') renderLibrary();
     if (name === 'settings') renderSettings();
   }
   document.querySelectorAll('#tabbar button').forEach((b) => b.addEventListener('click', () => show(b.dataset.screen)));
@@ -702,19 +701,6 @@
 
   $('cal-prev').onclick = () => { calMonth.m--; if (calMonth.m < 0) { calMonth.m = 11; calMonth.y--; } renderCalendar(); };
   $('cal-next').onclick = () => { calMonth.m++; if (calMonth.m > 11) { calMonth.m = 0; calMonth.y++; } renderCalendar(); };
-
-  /* ---------- ספרייה ---------- */
-  let libCat = 'all';
-  function renderLibrary() {
-    const cats = ['all', 'push', 'pull', 'legs', 'core', 'cardio', 'mobility', 'warmup', 'cooldown'];
-    $('lib-chips').innerHTML = cats.map((c) => `<button class="${c === libCat ? 'active' : ''}" data-c="${c}">${c === 'all' ? 'הכל' : CAT_NAMES[c]}</button>`).join('');
-    $('lib-chips').querySelectorAll('button').forEach((b) => { b.onclick = () => { libCat = b.dataset.c; renderLibrary(); }; });
-    const q = ($('lib-search').value || '').trim();
-    const hay = (e) => `${e.name} ${e.muscles} ${e.steps.join(' ')} ${e.tip}`;
-    const list = EX.filter((e) => (libCat === 'all' || e.cat === libCat) && (!q || hay(e).includes(q)));
-    $('lib-list').innerHTML = list.length ? list.map((e) => `<details class="lib-ex"><summary><b>${esc(e.name)}</b><span class="lvl">${P.LEVELS[e.level]}</span><span class="lvl">${CAT_NAMES[e.cat]}</span></summary><ol class="steps">${e.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(e.tip)}</p><div class="m">שרירים: ${esc(e.muscles)}${e.sides ? ' · תרגיל חד‑צדדי' : ''}</div></details>`).join('') : '<p class="empty">לא נמצאו תרגילים</p>';
-  }
-  $('lib-search').addEventListener('input', renderLibrary);
 
   /* ---------- הגדרות ---------- */
   function renderSettings() {

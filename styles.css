@@ -179,19 +179,6 @@ input[type=search] { width: 100%; padding: .75rem 1rem; border-radius: 14px; bor
 .hist .t span { display: block; font-size: .78rem; color: var(--muted); }
 .hist .m { font-weight: 700; }
 
-/* library */
-.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 6px; scrollbar-width: none; }
-.chips::-webkit-scrollbar { display: none; }
-.chips button { white-space: nowrap; padding: .35rem .8rem; border-radius: 999px; background: var(--card); font-size: .85rem; }
-.chips button.active { background: var(--accent); color: #04121c; font-weight: 700; }
-.lib-ex { background: var(--card); border-radius: 12px; padding: 10px 14px; margin-bottom: 6px; }
-.lib-ex summary { cursor: pointer; display: flex; align-items: center; gap: 8px; list-style: none; }
-.lib-ex summary::-webkit-details-marker { display: none; }
-.lib-ex summary b { flex: 1; }
-.lib-ex .lvl { font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; background: var(--bg2); color: var(--muted); }
-.lib-ex p { margin: 8px 0 0; font-size: .9rem; color: #c5cfe3; }
-.lib-ex .m { font-size: .78rem; color: var(--muted); margin-top: 4px; }
-
 /* settings */
 .field { display: block; margin-bottom: 18px; }
 .field > span { display: block; font-weight: 700; margin-bottom: 8px; }
@@ -243,7 +230,6 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .pv-ex .body .how { display: none; }
 .pv-ex.open .body .how { display: block; }
 .pv-ex.open { align-items: flex-start; }
-.lib-ex .steps, .lib-ex .tip { margin-top: 8px; }
 
 .steps.preview { opacity: .72; }
 
