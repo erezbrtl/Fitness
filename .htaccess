@@ -1,0 +1,24 @@
+# הגדרות שרת ל‑Apache (אחסון משלכם).
+# המקבילה של קובץ _headers שמשמש ב‑Netlify — שני הקבצים יכולים לחיות זה לצד זה,
+# כל שרת מתעלם מזה שלא שייך לו.
+
+<IfModule mod_headers.c>
+  # ה‑Service Worker חייב להיבדק מול השרת בכל טעינה. בלי זה הדפדפן עלול
+  # להגיש עותק ישן מהמטמון עד יממה, והודעת העדכון בתוך האפליקציה לא תופיע.
+  <Files "sw.js">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </Files>
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+# הפניה ל‑HTTPS. בלי HTTPS אין Service Worker בכלל — לא עבודה ללא רשת,
+# לא התקנה כאפליקציה ולא הודעות עדכון.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>

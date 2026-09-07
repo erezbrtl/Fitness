@@ -25,6 +25,7 @@ git checkout <ענף-העבודה>
 - `app.js` — ניווט, נגן האימון, מעקב התקדמות, הגדרות
 - `sw.js` + `manifest.webmanifest` + `icons/` — PWA
 - `_headers` — הגדרות Netlify (ה‑Service Worker לא נשמר במטמון)
+- `.htaccess` / `nginx.conf.example` — אותן הגדרות לאחסון עצמי (Apache / nginx)
 
 ## כללים שחשוב לשמור
 

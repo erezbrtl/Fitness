@@ -1,0 +1,26 @@
+# קטע להוספה ל‑nginx אם האחסון שלכם רץ עליו במקום Apache.
+# להתאים את server_name ואת root, ולהעתיק לתוך בלוק ה‑server של האתר.
+
+server {
+    listen 443 ssl;
+    server_name example.com;          # ← הדומיין שלכם
+    root /var/www/kalisthenics;       # ← התיקייה שאליה מעלים את הקבצים
+    index index.html;
+
+    # ה‑Service Worker חייב להיבדק מול השרת בכל טעינה, אחרת עדכונים
+    # מגיעים באיחור של עד יממה והודעת העדכון לא מופיעה.
+    location = /sw.js {
+        add_header Cache-Control "no-cache, must-revalidate";
+    }
+
+    location = /manifest.webmanifest {
+        default_type application/manifest+json;
+    }
+}
+
+# בלי HTTPS אין Service Worker — לא עבודה ללא רשת ולא התקנה כאפליקציה.
+server {
+    listen 80;
+    server_name example.com;
+    return 301 https://$host$request_uri;
+}
