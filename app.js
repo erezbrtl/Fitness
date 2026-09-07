@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '2.6.0';
+  const APP_VERSION = '2.7.0';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -157,7 +157,7 @@
     if (status === 'done') html += `<div class="done-badge">✓ הושלם</div>`;
     if (t < t0) html += `<p class="muted small">התאמנתם לפני תחילת התוכנית — כל הכבוד. המחזור הרשמי מתחיל ב${fmtDate(t0)}.</p>`;
     if (w) {
-      html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.rounds} סבבים</span><span class="tag">⚡ ${w.meta.ready}″ היכון · ${w.meta.work}″ עבודה · ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
+      html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.finisher ? `${w.meta.rounds - 1} סבבים + סבב סיום` : `${w.meta.rounds} סבבים`}</span><span class="tag">⚡ ${w.meta.ready}″ היכון · ${w.meta.work}″ עבודה · ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
       html += `<ol class="circuit">${w.meta.slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>`;
       html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">◀ ${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'}</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
       const cur = durationFor(t);
@@ -353,7 +353,7 @@
       </div>
       <p class="muted small">${esc(m.focus)} · רמה: ${m.levelName} · שבוע ${m.week} (${m.weekLabel}) · ${fmtDate(dateStr)}</p>
       <div class="pv-section"><h3>חימום <small>${m.warmup.length} תרגילים</small></h3>${w.segments.filter((s) => s.kind === 'warmup').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
-      <div class="pv-section"><h3>עיקר האימון <small>${m.rounds} סבבים × ${m.exercises.length} תרגילים · ${m.ready}″ היכון לפני כל תרגיל · ${m.roundRest}″ בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
+      <div class="pv-section"><h3>עיקר האימון <small>${m.finisher ? `${m.rounds - 1} סבבים מלאים + סבב סיום של ${m.finisher} תרגילים` : `${m.rounds} סבבים`} · ${m.ready}″ היכון לפני כל תרגיל · ${m.roundRest}″ בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
       <div class="pv-section"><h3>שחרור ומתיחות</h3>${w.segments.filter((s) => s.kind === 'cooldown').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
       <div class="sticky-bottom"><button class="btn primary block" id="pv-start">◀ התחלת אימון</button></div>`;
     $('pv-body').querySelectorAll('.pv-ex').forEach((el) => {
@@ -367,34 +367,79 @@
   let prevScreen = 'home';
   document.querySelectorAll('#tabbar button').forEach((b) => b.addEventListener('click', () => { prevScreen = b.dataset.screen; }));
 
-  /* ---------- צלילים ---------- */
+  /* ---------- צלילים והקראה ---------- */
   let audioCtx = null;
-  function ensureAudio() {
-    if (!state.settings.sound) return;
-    try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch {}
+  let speechReady = false;
+  let voices = [];
+
+  function loadVoices() { try { voices = speechSynthesis.getVoices() || []; } catch { voices = []; } }
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    speechSynthesis.addEventListener('voiceschanged', loadVoices);
   }
-  function beep(freq = 880, dur = 0.12, vol = 0.25) {
+
+  /* חייב לרוץ מתוך לחיצה של המשתמש — דפדפנים ניידים חוסמים אודיו והקראה
+     שלא התחילו במגע ישיר. בלי זה שום צליל לא יישמע במהלך האימון. */
+  function unlockAudio() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch {}
+    if ('speechSynthesis' in window && !speechReady) {
+      try {
+        const u = new SpeechSynthesisUtterance(' ');
+        u.volume = 0; u.lang = 'en-US';
+        speechSynthesis.speak(u);
+        speechReady = true;
+        loadVoices();
+      } catch {}
+    }
+  }
+  const ensureAudio = unlockAudio;
+
+  function tone(freq, dur, vol, delay, type) {
     if (!state.settings.sound || !audioCtx) return;
     try {
+      const t = audioCtx.currentTime + (delay || 0);
       const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-      o.type = 'sine'; o.frequency.value = freq; g.gain.value = vol;
+      o.type = type || 'sine'; o.frequency.value = freq; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(g); g.connect(audioCtx.destination);
-      const t = audioCtx.currentTime; o.start(t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.stop(t + dur);
+      o.start(t); o.stop(t + dur + 0.02);
     } catch {}
   }
-  function speak(text, lang) {
-    if (!state.settings.voice || !('speechSynthesis' in window)) return;
+  const beep = (freq = 880, dur = 0.12, vol = 0.25) => tone(freq, dur, vol, 0);
+
+  /* חתימות קול שונות לכל מצב — עולה = להתחיל לעבוד, יורד = לעצור */
+  const CUES = {
+    work:      () => { tone(660, 0.11, 0.45, 0);    tone(990, 0.20, 0.5, 0.1); },
+    rest:      () => { tone(620, 0.12, 0.34, 0);    tone(415, 0.22, 0.34, 0.11); },
+    roundrest: () => { tone(620, 0.12, 0.34, 0);    tone(415, 0.16, 0.34, 0.11); tone(415, 0.22, 0.3, 0.3); },
+    ready:     () => { tone(784, 0.10, 0.28, 0); },
+    countdown: () => { tone(1046, 0.09, 0.4, 0); },
+    side:      () => { tone(1318, 0.10, 0.4, 0);    tone(1318, 0.14, 0.4, 0.16); },
+    finish:    () => { tone(660, 0.14, 0.4, 0); tone(880, 0.14, 0.4, 0.16); tone(1320, 0.35, 0.45, 0.32); },
+  };
+  const cue = (name) => { const f = CUES[name]; if (f) f(); };
+
+  function speak(text, opts) {
+    opts = opts || {};
+    if (!state.settings.voice || !('speechSynthesis' in window) || !text) return;
     try {
-      speechSynthesis.cancel();
+      if (opts.interrupt) speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang || 'he-IL';
-      u.rate = 1.05;
-      const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.toLowerCase().startsWith(u.lang.slice(0, 2)));
+      u.lang = opts.lang || 'en-US';
+      u.rate = opts.rate || 1;
+      u.volume = 1;
+      const pref = u.lang.slice(0, 2).toLowerCase();
+      const v = voices.find((x) => x.lang && x.lang.toLowerCase().startsWith(pref));
       if (v) u.voice = v;
       speechSynthesis.speak(u);
     } catch {}
   }
-  if (navigator.vibrate) { /* זמין */ }
+
   const vibrate = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch {} };
 
   /* ---------- Wake Lock ---------- */
@@ -413,7 +458,7 @@
   function startWorkout(dateStr, force) {
     const w = workoutFor(dateStr, force);
     if (!w) return;
-    ensureAudio();
+    unlockAudio();
     hideUpdateBar();
     Object.assign(player, { active: true, paused: false, workout: w, idx: 0, pausedAt: 0, lastWhole: -1, sideDone: false, doneSec: 0, date: dateStr, dayType: 'workout' });
     $('pl-name').textContent = `${w.meta.icon} ${w.meta.name}`;
@@ -434,7 +479,8 @@
     const s = segs[i];
     const pl = $('screen-player');
     pl.className = `screen player active mode-${s.kind}${player.paused ? ' paused' : ''}`;
-    $('pl-kind').textContent = KIND_LABEL[s.kind] + (s.round ? ` · סבב ${s.round}/${s.rounds}` : '');
+    const roundLabel = s.phase === 'סבב סיום' ? ' · סבב סיום' : (s.round ? ` · סבב ${s.round}/${s.rounds}` : '');
+    $('pl-kind').textContent = KIND_LABEL[s.kind] + roundLabel;
     $('pl-phase').textContent = s.phase + (s.idx ? ` · תרגיל ${s.idx}/${s.of}` : '');
     $('pl-side').hidden = true;
     $('pl-swap').hidden = !s.ex;
@@ -444,23 +490,30 @@
       $('pl-ex').dir = 'ltr';
       $('pl-meta').textContent = `${s.ex.name} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
       setHow(s.ex, false);
-      const announced = s.kind === 'work' && segs[i - 1] && segs[i - 1].kind === 'ready' && segs[i - 1].ex === s.ex;
-      if (!opts.silent && !announced) speak(s.ex.en, 'en-US');
     } else {
       $('pl-ex').textContent = s.kind === 'prep' ? 'מוכנים?' : 'מנוחה';
       $('pl-ex').dir = 'rtl';
       $('pl-meta').textContent = s.kind === 'prep' ? 'עמדו על המזרן, נשמו עמוק' : 'נשמו, שתו מים אם צריך';
       setHow(upcoming, true);
-      if (s.kind !== 'prep' && !opts.silent) speak('מנוחה');
     }
     const next = upcoming;
     $('pl-next').innerHTML = next && next !== s.ex ? `הבא: <b dir="ltr">${esc(next.en)}</b>` : (i === segs.length - 1 ? 'זהו — התרגיל האחרון!' : '');
     $('pl-next').hidden = !$('pl-next').innerHTML;
     if (!opts.silent) {
-      if (s.kind === 'work') { beep(1046, 0.25, 0.35); vibrate(120); }
-      else if (s.kind === 'ready') { beep(784, 0.14, 0.22); }
-      else if (s.kind === 'rest' || s.kind === 'roundrest') { beep(523, 0.2); }
-      else if (s.kind !== 'prep') beep(700, 0.12);
+      if (s.kind === 'work') {
+        cue('work'); vibrate(140);
+        speak(lastRound(s) ? 'Go. Last round' : 'Go', { interrupt: true });
+      } else if (s.kind === 'ready') {
+        cue('ready');
+        speak('Get ready. ' + s.ex.en, { interrupt: true });
+      } else if (s.kind === 'rest' || s.kind === 'roundrest') {
+        cue(s.kind); vibrate(60);
+        speak(s.kind === 'roundrest' ? 'Rest. Next round coming up' : 'Rest', { interrupt: true });
+      } else if (s.kind === 'warmup') {
+        cue('ready'); speak(s.ex.en, { interrupt: true });
+      } else if (s.kind === 'cooldown') {
+        cue('ready'); speak(s.ex.en, { interrupt: true });
+      }
     }
     renderTime(s.dur);
   }
@@ -483,6 +536,8 @@
     enterSegment(player.idx, { silent: true, elapsed: Math.min(el, 2) });
   }
   $('pl-swap').onclick = swapCurrent;
+
+  const lastRound = (s) => !!(s.round && s.rounds && s.round === s.rounds);
 
   function setHow(ex, upcoming) {
     $('pl-steps').innerHTML = ex ? ex.steps.map((t) => `<li>${esc(t)}</li>`).join('') : '';
@@ -510,9 +565,13 @@
     if (whole !== player.lastWhole) {
       player.lastWhole = whole;
       renderTime(whole);
-      if (whole > 0 && whole <= 3 && s.kind !== 'cooldown') { beep(660, 0.08, 0.2); $('pl-time').classList.remove('flash'); void $('pl-time').offsetWidth; $('pl-time').classList.add('flash'); }
+      if (whole > 0 && whole <= 3 && s.kind !== 'cooldown') {
+        cue('countdown');
+        $('pl-time').classList.remove('flash'); void $('pl-time').offsetWidth; $('pl-time').classList.add('flash');
+      }
+      if (whole === 10 && s.kind === 'work' && s.dur >= 25) speak('Ten seconds');
       if (s.kind === 'work' && s.ex && s.ex.sides && !player.sideDone && el >= s.dur / 2) {
-        player.sideDone = true; $('pl-side').hidden = false; beep(1318, 0.15, 0.3); beep(1318, 0.15, 0.3); vibrate([60, 60, 60]); speak('החליפו צד');
+        player.sideDone = true; $('pl-side').hidden = false; cue('side'); vibrate([60, 60, 60]); speak('Switch sides', { interrupt: true });
       }
     }
     const done = segElapsedBefore(player.idx) + Math.min(el, s.dur);
@@ -553,7 +612,7 @@
       state.sessions.push(rec);
       save();
     }
-    if (completed) { beep(880, 0.15, 0.3); setTimeout(() => beep(1108, 0.15, 0.3), 160); setTimeout(() => beep(1318, 0.3, 0.3), 320); vibrate([100, 50, 100, 50, 200]); speak('כל הכבוד, סיימתם את האימון'); }
+    if (completed) { cue('finish'); vibrate([100, 50, 100, 50, 200]); speak('Workout complete. Well done', { interrupt: true }); }
     showSummary(w, rec, completed, doneSec);
     showUpdateBar();
   }
@@ -771,8 +830,24 @@
     if (!e.target.value) { e.target.value = state.startDate; return; }
     state.startDate = e.target.value; state.cycle = 1; save();
   });
-  $('set-sound').addEventListener('change', (e) => { state.settings.sound = e.target.checked; save(); });
-  $('set-voice').addEventListener('change', (e) => { state.settings.voice = e.target.checked; save(); });
+  $('btn-test-audio').onclick = () => {
+    unlockAudio();
+    const hint = $('audio-hint');
+    if (!state.settings.sound && !state.settings.voice) {
+      hint.textContent = 'שני המתגים כבויים — הדליקו לפחות אחד מהם ונסו שוב.';
+      return;
+    }
+    hint.textContent = 'מנגן: תחילת עבודה, ואז מנוחה…';
+    cue('work');
+    speak('Go. Kneeling push-ups', { interrupt: true });
+    setTimeout(() => { cue('rest'); speak('Rest'); }, 2200);
+    setTimeout(() => {
+      hint.textContent = 'אם לא נשמע כלום — ודאו שהטלפון לא במצב שקט ושעוצמת המדיה למעלה.';
+    }, 4200);
+  };
+
+  $('set-sound').addEventListener('change', (e) => { state.settings.sound = e.target.checked; save(); if (e.target.checked) unlockAudio(); });
+  $('set-voice').addEventListener('change', (e) => { state.settings.voice = e.target.checked; save(); if (e.target.checked) unlockAudio(); });
   $('set-wake').addEventListener('change', (e) => { state.settings.wake = e.target.checked; save(); });
 
   function exportBackup() {

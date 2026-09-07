@@ -186,7 +186,10 @@ input[type=search] { width: 100%; padding: .75rem 1rem; border-radius: 14px; bor
 .field { display: block; margin-bottom: 18px; }
 .field > span { display: block; font-weight: 700; margin-bottom: 8px; }
 .field.row { display: flex; align-items: center; justify-content: space-between; }
-.field.row > span { margin: 0; }
+.field.row > span { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.field.row > span small { font-weight: 400; font-size: .74rem; }
+#btn-test-audio { width: 100%; margin-top: 4px; }
+#audio-hint { margin-top: 8px; }
 .field small { display: block; margin-top: 6px; }
 .range-row { display: flex; align-items: center; gap: 12px; }
 .range-row input { flex: 1; accent-color: var(--accent); }
