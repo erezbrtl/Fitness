@@ -112,7 +112,7 @@ input[type=search] { width: 100%; padding: .75rem 1rem; border-radius: 14px; bor
 .sticky-bottom .btn { margin-top: 0; }
 
 /* player */
-.player { position: fixed; inset: 0; background: var(--bg); z-index: 50; display: none; flex-direction: column; padding: calc(var(--safe-t) + 10px) 16px calc(var(--safe-b) + 16px); max-width: 560px; margin: 0 auto; }
+.player { position: fixed; inset: 0; background: var(--bg); z-index: 9100; display: none; flex-direction: column; padding: calc(var(--safe-t) + 10px) 16px calc(var(--safe-b) + 16px); max-width: 560px; margin: 0 auto; }
 .player.active { display: flex; }
 .player-top { display: flex; align-items: center; gap: 10px; }
 .player-title { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
@@ -130,22 +130,6 @@ input[type=search] { width: 100%; padding: .75rem 1rem; border-radius: 14px; bor
 .ex-name { font-size: 1.7rem; font-weight: 800; line-height: 1.15; }
 .ex-meta { color: var(--muted); font-size: .85rem; }
 .timer-ring { position: relative; width: min(58vw, 250px); aspect-ratio: 1; margin: 6px 0; }
-
-/* הנפשת התרגיל — מוצגת מעל שעון העצר */
-.fig-row { display: flex; align-items: center; justify-content: center; width: 100%; }
-.ex-fig { width: 100%; max-width: 340px; background: var(--card); border-radius: 14px; }
-.ex-fig svg { display: block; width: 100%; height: 88px; }
-.ex-fig .fig-body { fill: #cfe4ff; }
-.ex-fig .fig-far { fill: #56698c; }
-.ex-fig .fig-halo { fill: var(--card); stroke: var(--card); }
-.ex-fig .fig-ground { stroke: #2b3a58; }
-.player.mode-work .ex-fig .fig-body { fill: #ffc79a; }
-.player.mode-work .ex-fig .fig-far { fill: #8d6141; }
-.player.mode-ready .ex-fig .fig-body { fill: #d6c9ff; }
-.player.mode-ready .ex-fig .fig-far { fill: #6c5f92; }
-.player.mode-cooldown .ex-fig .fig-body { fill: #b7f0c9; }
-.player.mode-cooldown .ex-fig .fig-far { fill: #497f5e; }
-.ex-fig.upcoming { opacity: .78; }
 .timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring-bg { fill: none; stroke: var(--bg2); stroke-width: 8; }
 .ring-fg { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 339.29; stroke-dashoffset: 0; transition: stroke-dashoffset .2s linear, stroke .3s; }
@@ -219,14 +203,15 @@ input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--accent); }
 .days button.active { background: var(--accent2); color: #06210f; }
 
 /* tabbar */
-.tabbar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 560px; margin: 0 auto; background: rgba(17,26,46,.96); backdrop-filter: blur(12px); border-top: 1px solid #22304f; display: flex; padding: 6px 4px calc(var(--safe-b) + 6px); z-index: 40; }
+/* z-index גבוה כדי שתפריט הניווט יישאר מעל תגים צפים שהאחסון מזריק לדף */
+.tabbar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 560px; margin: 0 auto; background: rgba(17,26,46,.96); backdrop-filter: blur(12px); border-top: 1px solid #22304f; display: flex; padding: 6px 4px calc(var(--safe-b) + 6px); z-index: 9000; }
 .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .7rem; color: var(--muted); padding: 4px 0; border-radius: 10px; }
 .tabbar button span { font-size: 1.25rem; }
 .tabbar button.active { color: var(--accent); }
 .tabbar.hidden { display: none; }
 
 /* modal */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 9200; padding: 20px; }
 .modal[hidden] { display: none; }
 .modal-box { background: var(--card); border-radius: var(--radius); padding: 20px; max-width: 380px; width: 100%; }
 .modal-box p { font-size: 1.05rem; }
@@ -247,7 +232,7 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .tip::before { content: "💡"; flex-shrink: 0; }
 .player .steps { max-width: 40ch; }
 .player .steps li { font-size: .92rem; }
-.player .timer-ring { width: min(41vw, 160px); margin: 2px 0; }
+.player .timer-ring { width: min(44vw, 178px); margin: 2px 0 4px; }
 .pv-ex { cursor: pointer; }
 .pv-ex .body .how { display: none; }
 .pv-ex.open .body .how { display: block; }
@@ -344,7 +329,7 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .link-btn:active { background: var(--card2); }
 
 /* ---- הודעת עדכון ---- */
-.update-bar { position: fixed; bottom: calc(var(--safe-b) + 74px); left: 12px; right: 12px; max-width: 536px; margin: 0 auto; z-index: 45;
+.update-bar { position: fixed; bottom: calc(var(--safe-b) + 74px); left: 12px; right: 12px; max-width: 536px; margin: 0 auto; z-index: 9050;
   display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-radius: 14px;
   background: linear-gradient(135deg, #1e3a5f, #1c2a47); border: 1px solid #38bdf8;
   box-shadow: 0 10px 28px rgba(0,0,0,.45); animation: ub-in .3s ease; }
