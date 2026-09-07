@@ -1,5 +1,5 @@
 /* Service Worker — עבודה מלאה ללא אינטרנט, ועדכון בשליטת המשתמש */
-const VERSION = 'calisthenics-v2.8.0';
+const VERSION = 'calisthenics-v2.9.0';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './program.js', './exercises.js', './figures.js',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-maskable.svg', './icons/icon-192.png',

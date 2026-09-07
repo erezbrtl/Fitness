@@ -5,7 +5,7 @@
 
   /* אורכי איברים ביחידות הקנבס (200x132). הם קבועים תמיד — לכן האיברים
      לא "נמתחים" בין תנוחות: מה שמשתנה הוא הזוויות בלבד. */
-  const L = { spine: 30, head: 10, hr: 7.5, upper: 18, fore: 17, thigh: 24, shin: 24, foot: 9 };
+  const L = { spine: 30, head: 11.5, hr: 7.5, upper: 18, fore: 17, thigh: 24, shin: 24, foot: 9 };
   const GY = 118;                       // קו הרצפה
   const rad = (d) => (d * Math.PI) / 180;
   const pt = (o, deg, len) => ({ x: o.x + len * Math.cos(rad(deg)), y: o.y - len * Math.sin(rad(deg)) });
@@ -34,16 +34,16 @@
   /* --- דחיפה: הידיים על הרצפה, הגוף בקו ישר, ירידה ועלייה --- */
   A.pushup = { period: 2.6, frames: [
     { x:102, y:93,  sp:20, hd:16, sh:-92, el:-88, hp:200, kn:200, an:-73, sh2:-84, el2:-95, hp2:196, kn2:204 },
-    { x:104, y:110, sp:4,  hd:-6, sh:177, el:-40, hp:184, kn:184, an:-25, sh2:170, el2:-34, hp2:180, kn2:188 },
+    { x:104, y:107, sp:4,  hd:-6, sh:186, el:-41, hp:184, kn:184, an:-50, sh2:179, el2:-35, hp2:180, kn2:188 },
   ]};
   A.diamond_pushup = { period: 2.6, frames: [
     { x:102, y:93,  sp:20, hd:16, sh:-96, el:-84, hp:200, kn:200, an:-73, sh2:-96, el2:-84, hp2:196, kn2:204 },
-    { x:104, y:110, sp:4,  hd:-6, sh:186, el:-30, hp:184, kn:184, an:-25, sh2:186, el2:-30, hp2:180, kn2:188 },
+    { x:104, y:107, sp:4,  hd:-6, sh:193, el:-34, hp:184, kn:184, an:-50, sh2:193, el2:-34, hp2:180, kn2:188 },
   ]};
   /* על הברכיים: הברך על המזרן, השוק מורמת מאחור */
   A.knee_pushup = { period: 2.6, frames: [
-    { x:95,  y:101, sp:36, hd:30, sh:-92, el:-88, hp:216, kn:170, an:160, sh2:-84, el2:-95, hp2:212, kn2:174 },
-    { x:100, y:112, sp:7,  hd:0,  sh:163, el:-65, hp:187, kn:170, an:160, sh2:156, el2:-59, hp2:183, kn2:174 },
+    { x:95,  y:101, sp:36, hd:30, sh:-92, el:-88, hp:216, kn:150, an:150, sh2:-84, el2:-95, hp2:212, kn2:154 },
+    { x:100, y:112, sp:7,  hd:0,  sh:163, el:-65, hp:187, kn:150, an:150, sh2:156, el2:-59, hp2:183, kn2:154 },
   ]};
 
   /* --- רגליים --- */
@@ -79,8 +79,8 @@
 
   /* --- בטן: שוכבים על הגב, הראש שמאלה והרגליים ימינה --- */
   A.crunch = { period: 2.6, frames: [
-    { x:112, y:113, sp:180, hd:185, sh:40, el:20, hp:55, kn:-58, an:0, sh2:46, el2:26, hp2:51, kn2:-54 },
-    { x:112, y:113, sp:160, hd:140, sh:20, el:5,  hp:55, kn:-58, an:0, sh2:26, el2:11, hp2:51, kn2:-54 },
+    { x:112, y:113, sp:180, hd:185, sh:120, el:250, hp:55, kn:-58, an:0, sh2:127, el2:257, hp2:51, kn2:-54 },
+    { x:112, y:113, sp:160, hd:140, sh:110, el:250, hp:55, kn:-58, an:0, sh2:117, el2:257, hp2:51, kn2:-54 },
   ]};
   A.leg_raise = { period: 3.2, frames: [
     { x:112, y:113, sp:180, hd:182, sh:-2, el:-2, hp:0,  kn:0,  an:70, sh2:2, el2:2, hp2:-4, kn2:-4, an2:66 },
@@ -88,7 +88,7 @@
   ]};
   A.v_up = { period: 2.8, frames: [
     { x:112, y:113, sp:180, hd:180, sh:185, el:185, hp:0,  kn:0,  an:70, sh2:189, el2:189, hp2:-4, kn2:-4, an2:66 },
-    { x:112, y:111, sp:140, hd:130, sh:14,  el:14,  hp:45, kn:45, an:5,  sh2:18,  el2:18,  hp2:41, kn2:41, an2:1 },
+    { x:112, y:111, sp:134, hd:124, sh:2,   el:2,   hp:52, kn:52, an:12, sh2:6,   el2:6,   hp2:48, kn2:48, an2:8 },
   ]};
 
   /* --- שרשרת אחורית: גשר ישבן --- */
@@ -111,7 +111,7 @@
   A.march = { period: 1.9, mode:'loop', frames: [
     { x:100, y:65, sp:90, hd:92, sh:-120, el:-100, hp:-30, kn:-110, an:-60, sh2:-60, el2:-80, hp2:-90, kn2:-90, an2:-20 },
     { x:100, y:65, sp:90, hd:92, sh:-88,  el:-88,  hp:-88, kn:-92,  an:-20, sh2:-88, el2:-88, hp2:-92, kn2:-88, an2:-20 },
-    { x:100, y:65, sp:90, hd:92, sh:-60,  el:-80,  hp:-90, kn:-90,  an:-20, sh2:-120, el2:-100, hp2:-30, kn2:-110, an2:-60 },
+    { x:100, y:65, sp:90, hd:92, sh:-44,  el:-64,  hp:-90, kn:-90,  an:-20, sh2:-138, el2:-118, hp2:-30, kn2:-110, an2:-60 },
     { x:100, y:65, sp:90, hd:92, sh:-88,  el:-88,  hp:-88, kn:-92,  an:-20, sh2:-88, el2:-88, hp2:-92, kn2:-88, an2:-20 },
   ]};
   A.arm_circles = { period: 2.6, mode:'loop', frames: [
@@ -143,15 +143,83 @@
     return n;
   }
 
-  /* בונה שלד SVG פעם אחת, ואחר כך רק מעדכן קואורדינטות */
-  /* כל תרגיל ממוסגר לפי הגודל שלו, כדי שימלא את המסגרת. יחס הצדדים קבוע
-     כדי שגובה הכרטיס לא יקפוץ בין תרגילים, והרצפה תמיד בתחתית. */
-  const AR = 1.06, PAD = 9;
+  /* ---- הדמות: צללית ממולאת, לא קווים ----
+     כל איבר הוא "קפסולה" מתחדדת בין שני מפרקים. הגוף מצויר בחמש שכבות
+     (איברים רחוקים, גו, ראש וצוואר, רגל קרובה, יד קרובה), וכל שכבה מקבלת
+     "הילה" בצבע הרקע לפניה — כך נפתח רווח דק שמפריד בין האיברים במקום
+     שהכול יימזג לגוש אחד. */
+  const R = {
+    hip: 8.2, chest: 10.0, neckW: 4.4,
+    shoulder: 5.4, elbow: 4.3, wrist: 3.3, hand: 3.6,
+    thigh: 7.8, knee: 5.6, ankle: 4.1, toe: 2.6,
+    headRx: 6.4, headRy: 7.6,
+    far: 0.88,
+  };
+
+  const f2 = (n) => n.toFixed(2);
+  const circlePath = (p, r) =>
+    `M${f2(p.x - r)},${f2(p.y)}A${f2(r)},${f2(r)} 0 1 0 ${f2(p.x + r)},${f2(p.y)}A${f2(r)},${f2(r)} 0 1 0 ${f2(p.x - r)},${f2(p.y)}Z`;
+
+  function ellipsePath(c, rx, ry, deg) {
+    const t = deg * Math.PI / 180, cs = Math.cos(t), sn = Math.sin(t);
+    const sx = c.x - rx * cs, sy = c.y - rx * sn, ex = c.x + rx * cs, ey = c.y + rx * sn;
+    return `M${f2(sx)},${f2(sy)}A${f2(rx)},${f2(ry)} ${f2(deg)} 1 0 ${f2(ex)},${f2(ey)}` +
+           `A${f2(rx)},${f2(ry)} ${f2(deg)} 1 0 ${f2(sx)},${f2(sy)}Z`;
+  }
+
+  /* קפסולה מתחדדת: שני קווים משיקים ושתי קשתות בקצוות */
+  function taper(p0, r0, p1, r1) {
+    const dx = p1.x - p0.x, dy = p1.y - p0.y, d = Math.hypot(dx, dy);
+    if (d < 0.02 || d <= Math.abs(r0 - r1)) return circlePath(r0 >= r1 ? p0 : p1, Math.max(r0, r1));
+    const n = Math.atan2(dy, dx), phi = Math.acos((r0 - r1) / d);
+    const P = (p, r, ang) => `${f2(p.x + r * Math.cos(ang))},${f2(p.y + r * Math.sin(ang))}`;
+    const A1 = n + phi, B1 = n - phi;
+    const laf1 = 2 * phi > Math.PI ? 1 : 0;
+    const laf0 = 2 * Math.PI - 2 * phi > Math.PI ? 1 : 0;
+    return `M${P(p0, r0, A1)}L${P(p1, r1, A1)}A${f2(r1)},${f2(r1)} 0 ${laf1} 0 ${P(p1, r1, B1)}` +
+           `L${P(p0, r0, B1)}A${f2(r0)},${f2(r0)} 0 ${laf0} 0 ${P(p0, r0, A1)}Z`;
+  }
+
+  const lerpPt = (a, b, u) => ({ x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u });
+  const shoulderOf = (j) => lerpPt(j.neck, j.hip, 0.14);
+
+  /* חמש השכבות, מהרחוקה לקרובה */
+  function layers(j) {
+    const k = R.far, sh = shoulderOf(j);
+    const headDeg = Math.atan2(j.head.y - j.neck.y, j.head.x - j.neck.x) * 180 / Math.PI - 90;
+    return [
+      taper(j.hip, R.thigh * k, j.kneeF, R.knee * k) +
+      taper(j.kneeF, R.knee * k, j.ankleF, R.ankle * k) +
+      taper(j.ankleF, R.ankle * k, j.toeF, R.toe * k) +
+      taper(sh, R.shoulder * k, j.elbowF, R.elbow * k) +
+      taper(j.elbowF, R.elbow * k, j.wristF, R.wrist * k) +
+      circlePath(j.wristF, R.hand * k),
+
+      taper(j.hip, R.hip, j.neck, R.chest),
+
+      taper(j.neck, R.neckW, j.head, R.neckW - 0.4) +
+      ellipsePath(j.head, R.headRx, R.headRy, headDeg),
+
+      taper(j.hip, R.thigh, j.knee, R.knee) +
+      taper(j.knee, R.knee, j.ankle, R.ankle) +
+      taper(j.ankle, R.ankle, j.toe, R.toe),
+
+      taper(sh, R.shoulder, j.elbow, R.elbow) +
+      taper(j.elbow, R.elbow, j.wrist, R.wrist) +
+      circlePath(j.wrist, R.hand),
+    ];
+  }
+
+  const LAYER_CLASS = ['fig-far', 'fig-body', 'fig-body', 'fig-body', 'fig-body'];
+  const NLAYERS = LAYER_CLASS.length;
+
+  /* כל תרגיל ממוסגר לפי הגודל שלו, כדי שימלא את הרצועה */
+  const PAD = 12;   // מרווח שמכסה גם את עובי האיברים סביב המפרקים
   const boxes = {};
   function viewBox(id) {
     if (boxes[id]) return boxes[id];
     const def = A[id];
-    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = GY + 3;
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = GY + 4;
     for (let t = 0; t <= 1.0001; t += 0.02) {
       const j = build(poseAt(def, t));
       for (const k in j) {
@@ -159,46 +227,28 @@
         y0 = Math.min(y0, j[k].y); y1 = Math.max(y1, j[k].y);
       }
     }
-    x0 -= PAD; x1 += PAD; y0 -= PAD; y1 += PAD - 4;
-    let w = x1 - x0, h = y1 - y0;
-    if (w / h < AR) { const nw = h * AR; x0 -= (nw - w) / 2; w = nw; }
-    else { const nh = w / AR; y0 -= nh - h; h = nh; }   // המקום הנוסף נפתח למעלה
-    return (boxes[id] = `${x0.toFixed(1)} ${y0.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);
+    x0 -= PAD; x1 += PAD; y0 -= PAD; y1 += PAD - 6;
+    return (boxes[id] = `${x0.toFixed(1)} ${y0.toFixed(1)} ${(x1 - x0).toFixed(1)} ${(y1 - y0).toFixed(1)}`);
   }
 
   function makeRig(svg) {
     svg.innerHTML = '';
     const g = el('g', {});
-    const mk = (cls, w) => el('line', { class: cls, 'stroke-width': w, 'stroke-linecap': 'round' });
-    const far = {
-      arm1: mk('fig-far', 5.5), arm2: mk('fig-far', 5),
-      leg1: mk('fig-far', 7), leg2: mk('fig-far', 6.5), foot: mk('fig-far', 5),
-    };
-    const near = {
-      leg1: mk('fig-limb', 7.5), leg2: mk('fig-limb', 7), foot: mk('fig-limb', 5.5),
-      spine: mk('fig-body', 9),
-      arm1: mk('fig-limb', 6), arm2: mk('fig-limb', 5.5),
-    };
-    const ground = el('line', { class: 'fig-ground', x1: 8, y1: GY + 1, x2: 192, y2: GY + 1, 'stroke-width': 2, 'stroke-linecap': 'round' });
-    const head = el('circle', { class: 'fig-head', r: L.hr });
-    g.appendChild(ground);
-    Object.values(far).forEach((n) => g.appendChild(n));
-    [near.leg1, near.leg2, near.foot, near.spine].forEach((n) => g.appendChild(n));
-    g.appendChild(head);
-    [near.arm1, near.arm2].forEach((n) => g.appendChild(n));
+    g.appendChild(el('line', { class: 'fig-ground', x1: -40, y1: GY + 2, x2: 240, y2: GY + 2, 'stroke-width': 2.4, 'stroke-linecap': 'round' }));
+    const halos = [], fills = [];
+    for (let i = 0; i < NLAYERS; i++) {
+      const halo = el('path', { class: 'fig-halo', 'stroke-width': 2.6, 'stroke-linejoin': 'round' });
+      const fill = el('path', { class: LAYER_CLASS[i] });
+      g.appendChild(halo); g.appendChild(fill);
+      halos.push(halo); fills.push(fill);
+    }
     svg.appendChild(g);
-    return { far, near, head };
+    return { halos, fills };
   }
 
   function apply(rig, j) {
-    const set = (n, a, b) => { n.setAttribute('x1', a.x.toFixed(1)); n.setAttribute('y1', a.y.toFixed(1));
-                               n.setAttribute('x2', b.x.toFixed(1)); n.setAttribute('y2', b.y.toFixed(1)); };
-    set(rig.far.arm1, j.neck, j.elbowF); set(rig.far.arm2, j.elbowF, j.wristF);
-    set(rig.far.leg1, j.hip, j.kneeF);   set(rig.far.leg2, j.kneeF, j.ankleF); set(rig.far.foot, j.ankleF, j.toeF);
-    set(rig.near.leg1, j.hip, j.knee);   set(rig.near.leg2, j.knee, j.ankle);  set(rig.near.foot, j.ankle, j.toe);
-    set(rig.near.spine, j.hip, j.neck);
-    set(rig.near.arm1, j.neck, j.elbow); set(rig.near.arm2, j.elbow, j.wrist);
-    rig.head.setAttribute('cx', j.head.x.toFixed(1)); rig.head.setAttribute('cy', j.head.y.toFixed(1));
+    const d = layers(j);
+    for (let i = 0; i < NLAYERS; i++) { rig.halos[i].setAttribute('d', d[i]); rig.fills[i].setAttribute('d', d[i]); }
   }
 
   const KEYS = ['x','y','sp','hd','sh','el','hp','kn','an','sh2','el2','hp2','kn2','an2'];

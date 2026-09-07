@@ -132,24 +132,19 @@ input[type=search] { width: 100%; padding: .75rem 1rem; border-radius: 14px; bor
 .timer-ring { position: relative; width: min(58vw, 250px); aspect-ratio: 1; margin: 6px 0; }
 
 /* הנפשת התרגיל — מוצגת מעל שעון העצר */
-.fig-row { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
-.ex-fig { flex: 0 1 156px; background: var(--card); border-radius: 14px; }
-.ex-fig svg { display: block; width: 100%; height: auto; }
-.fig-row .timer-ring { flex: 0 0 auto; }
-.ex-fig .fig-limb { stroke: #cfe4ff; }
-.ex-fig .fig-body { stroke: #a9cdff; }
-.ex-fig .fig-head { fill: #cfe4ff; }
-.ex-fig .fig-far { stroke: #5b7196; }
+.fig-row { display: flex; align-items: center; justify-content: center; width: 100%; }
+.ex-fig { width: 100%; max-width: 340px; background: var(--card); border-radius: 14px; }
+.ex-fig svg { display: block; width: 100%; height: 88px; }
+.ex-fig .fig-body { fill: #cfe4ff; }
+.ex-fig .fig-far { fill: #56698c; }
+.ex-fig .fig-halo { fill: var(--card); stroke: var(--card); }
 .ex-fig .fig-ground { stroke: #2b3a58; }
-.player.mode-work .ex-fig .fig-limb, .player.mode-work .ex-fig .fig-body { stroke: #ffc79a; }
-.player.mode-work .ex-fig .fig-head { fill: #ffc79a; }
-.player.mode-work .ex-fig .fig-far { stroke: #8a5b36; }
-.player.mode-ready .ex-fig .fig-limb, .player.mode-ready .ex-fig .fig-body { stroke: #d6c9ff; }
-.player.mode-ready .ex-fig .fig-head { fill: #d6c9ff; }
-.player.mode-ready .ex-fig .fig-far { stroke: #6a5b96; }
-.player.mode-cooldown .ex-fig .fig-limb, .player.mode-cooldown .ex-fig .fig-body { stroke: #b7f0c9; }
-.player.mode-cooldown .ex-fig .fig-head { fill: #b7f0c9; }
-.player.mode-cooldown .ex-fig .fig-far { stroke: #3f7a55; }
+.player.mode-work .ex-fig .fig-body { fill: #ffc79a; }
+.player.mode-work .ex-fig .fig-far { fill: #8d6141; }
+.player.mode-ready .ex-fig .fig-body { fill: #d6c9ff; }
+.player.mode-ready .ex-fig .fig-far { fill: #6c5f92; }
+.player.mode-cooldown .ex-fig .fig-body { fill: #b7f0c9; }
+.player.mode-cooldown .ex-fig .fig-far { fill: #497f5e; }
 .ex-fig.upcoming { opacity: .78; }
 .timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring-bg { fill: none; stroke: var(--bg2); stroke-width: 8; }
@@ -252,7 +247,7 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .tip::before { content: "💡"; flex-shrink: 0; }
 .player .steps { max-width: 40ch; }
 .player .steps li { font-size: .92rem; }
-.player .timer-ring { width: min(39vw, 152px); margin: 2px 0; }
+.player .timer-ring { width: min(41vw, 160px); margin: 2px 0; }
 .pv-ex { cursor: pointer; }
 .pv-ex .body .how { display: none; }
 .pv-ex.open .body .how { display: block; }
