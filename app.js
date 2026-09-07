@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '3.0.0';
+  const APP_VERSION = '3.1.0';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -541,6 +541,15 @@
 
   const lastRound = (s) => !!(s.round && s.rounds && s.round === s.rounds);
 
+  /* איור התרגיל. בזמן מנוחה מוצג התרגיל הבא, מעומעם. לחימום ולשחרור אין איור. */
+  function setFigure(ex, upcoming) {
+    const wrap = $('pl-fig-wrap');
+    const ok = !!(ex && P.hasImage(ex.id));
+    if (ok) $('pl-fig').src = `img/${ex.id}.webp`;
+    wrap.hidden = !ok;
+    wrap.classList.toggle('upcoming', ok && !!upcoming);
+  }
+
   /* היעד: מספר חזרות או שניות החזקה. בזמן מנוחה מוצג היעד של התרגיל הבא. */
   function setTarget(text, isNext) {
     const el = $('pl-target');
@@ -550,6 +559,7 @@
   }
 
   function setHow(ex, upcoming) {
+    setFigure(ex, upcoming);
     $('pl-steps').innerHTML = ex ? ex.steps.map((t) => `<li>${esc(t)}</li>`).join('') : '';
     $('pl-tip').textContent = ex ? ex.tip : '';
     $('pl-tip').hidden = !ex;

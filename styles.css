@@ -134,6 +134,11 @@ input[type=search] { width: 100%; padding: .75rem 1rem; border-radius: 14px; bor
 .player.mode-work .ex-target { background: var(--work); color: #1a0a00; }
 .player.mode-ready .ex-target { background: #a78bfa; color: #1a0f2e; }
 .ex-target.next { background: var(--card); color: var(--muted); font-size: .95rem; font-weight: 700; }
+/* איור התרגיל — רצועה מעל שעון העצר */
+.ex-fig { width: 100%; max-width: 340px; background: var(--card); border-radius: 14px; padding: 4px 6px; }
+.ex-fig img { display: block; width: 100%; height: 96px; object-fit: contain; }
+.ex-fig.upcoming { opacity: .6; }
+
 .timer-ring { position: relative; width: min(58vw, 250px); aspect-ratio: 1; margin: 6px 0; }
 .timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring-bg { fill: none; stroke: var(--bg2); stroke-width: 8; }
@@ -237,7 +242,15 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .tip::before { content: "💡"; flex-shrink: 0; }
 .player .steps { max-width: 40ch; }
 .player .steps li { font-size: .92rem; }
-.player .timer-ring { width: min(44vw, 178px); margin: 2px 0 4px; }
+.player .timer-ring { width: min(38vw, 146px); margin: 2px 0; }
+/* בזמן עבודה מסלקים את הטקסט: האיור, היעד והשעון הם כל מה שצריך באמצע סט. */
+.player.mode-work .steps, .player.mode-work .tip { display: none; }
+/* מסכים נמוכים — מקצרים את הרצועה ואת ההסברים כדי שהכול ייכנס בלי גלילה */
+@media (max-height: 800px) {
+  .player .ex-fig img { height: 84px; }
+  .player .steps li { font-size: .86rem; line-height: 1.32; }
+  .player .tip { font-size: .84rem; padding: 7px 10px; margin-top: 6px; }
+}
 .pv-ex { cursor: pointer; }
 .pv-ex .body .how { display: none; }
 .pv-ex.open .body .how { display: block; }
