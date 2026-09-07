@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '3.1.0';
+  const APP_VERSION = '3.1.1';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -207,7 +207,7 @@
     $('cycle-card').innerHTML = `<h3>מחזור ${wi.cycle} · שבוע ${wi.week} מתוך 4 — ${mods.label}</h3>
       <div class="cycle-bar"><div style="width:${Math.round((dayInCycle + 1) / 28 * 100)}%"></div></div>
       <div class="week-pills">${[1, 2, 3, 4].map((k) => `<span class="${k === wi.week ? 'cur' : k < wi.week ? 'past' : ''}">שבוע ${k}</span>`).join('')}</div>
-      <p class="muted small" style="margin-top:8px">${wi.week === 4 ? 'שבוע שיא: עבודה ארוכה, מנוחה קצרה ווריאציות קשות. אחריו מתחיל מחזור חדש.' : 'עומס העבודה עולה משבוע לשבוע. שמרו על טכניקה ונשימה.'}</p>
+      <p class="muted small" style="margin-top:8px">${wi.week === 4 ? 'שבוע שיא: היעדים הגבוהים ביותר במחזור והמנוחה הקצרה ביותר. אחריו מתחיל מחזור חדש.' : 'היעדים עולים משבוע לשבוע — עוד חזרות, עוד שניות. שמרו על טכניקה ונשימה.'}</p>
       ${testDue(t) ? `<div class="btn-row"><button class="btn secondary" id="btn-go-test">${state.tests.length ? 'הגיע הזמן למבחן כושר' : 'לבצע מבחן כושר ראשון'}</button></div>` : ''}`;
     if (testDue(t)) $('btn-go-test').onclick = () => show('progress');
 
@@ -483,7 +483,6 @@
     $('pl-kind').textContent = KIND_LABEL[s.kind] + roundLabel;
     $('pl-phase').textContent = s.phase + (s.idx ? ` · תרגיל ${s.idx}/${s.of}` : '');
     $('pl-side').hidden = true;
-    $('pl-swap').hidden = !s.ex;
     const upcoming = s.next || (segs[i + 1] && segs[i + 1].ex) || (segs[i + 2] && segs[i + 2].ex) || null;
     if (s.ex) {
       $('pl-ex').textContent = s.ex.en;
@@ -519,25 +518,6 @@
     }
     renderTime(s.dur);
   }
-
-  function swapCurrent() {
-    const s = player.workout.segments[player.idx];
-    const ex = s.ex;
-    if (!ex) return;
-    const used = new Set(player.workout.segments.filter((x) => x.ex).map((x) => x.ex.id));
-    let pool = EX.filter((e) => e.cat === ex.cat && e.level <= state.settings.level && !used.has(e.id));
-    if (!pool.length) pool = EX.filter((e) => e.cat === ex.cat && e.level <= state.settings.level && e.id !== ex.id);
-    if (!pool.length) return;
-    const rep = pool[Math.floor(Math.random() * pool.length)];
-    player.workout.segments.forEach((x) => { if (x.ex === ex) x.ex = rep; if (x.next === ex) x.next = rep; });
-    const m = player.workout.meta;
-    m.exercises = m.exercises.map((e) => (e === ex ? rep : e));
-    m.warmup = m.warmup.map((e) => (e === ex ? rep : e));
-    m.slots = m.slots.map((s) => (s.ex === ex ? Object.assign({}, s, { ex: rep }) : s));
-    const el = (performance.now() - player.segStart) / 1000;
-    enterSegment(player.idx, { silent: true, elapsed: Math.min(el, 2) });
-  }
-  $('pl-swap').onclick = swapCurrent;
 
   const lastRound = (s) => !!(s.round && s.rounds && s.round === s.rounds);
 
@@ -828,6 +808,9 @@
     const s = state.settings;
     $('set-duration').value = s.duration; $('set-duration-out').textContent = `${s.duration} דק׳`;
     $('set-level').querySelectorAll('button').forEach((b) => b.classList.toggle('active', Number(b.dataset.v) === s.level));
+    // אותם שמונה תרגילים בכל רמה — מה שמשתנה הוא היעד, אז מציגים אותו בפועל
+    $('set-level-note').textContent = 'אותם שמונה תרגילים בכל רמה, מה שמשתנה הוא היעד. ברמה הזו בשבוע הראשון: '
+      + P.circuitFor(s.level, 1).map((c) => (c.hold ? `${c.hold}״ ${c.label}` : `${c.reps} ${c.label}`)).join(' · ') + '.';
     $('set-days').innerHTML = DAY_SHORT.map((d, i) => `<button class="${s.trainDays.includes(i) ? 'active' : ''}" data-d="${i}">${d}</button>`).join('');
     $('set-days').querySelectorAll('button').forEach((b) => {
       b.onclick = () => {

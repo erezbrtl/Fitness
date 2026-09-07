@@ -296,8 +296,6 @@ input[type=date] { width: 100%; padding: .7rem .9rem; border-radius: 12px; borde
 .quick button.active { background: var(--accent); color: #04121c; }
 
 /* ---- החלפת תרגיל ---- */
-.swap-btn { font-size: .8rem; color: var(--accent); background: var(--card); padding: .3rem .8rem; border-radius: 999px; margin-top: 2px; }
-.swap-btn:active { transform: scale(.96); }
 
 /* ---- תזכורת גיבוי ---- */
 .backup-note { display: flex; align-items: center; gap: 10px; background: rgba(245,158,11,.12); border-inline-start: 3px solid var(--warn); border-radius: 12px; padding: 11px 13px; margin-bottom: 14px; }
