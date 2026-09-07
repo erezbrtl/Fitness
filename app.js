@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '2.7.0';
+  const APP_VERSION = '2.7.1';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -158,7 +158,7 @@
     if (t < t0) html += `<p class="muted small">התאמנתם לפני תחילת התוכנית — כל הכבוד. המחזור הרשמי מתחיל ב${fmtDate(t0)}.</p>`;
     if (w) {
       html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.finisher ? `${w.meta.rounds - 1} סבבים + סבב סיום` : `${w.meta.rounds} סבבים`}</span><span class="tag">⚡ ${w.meta.ready}″ היכון · ${w.meta.work}″ עבודה · ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
-      html += `<ol class="circuit">${w.meta.slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>`;
+      html += `<ol class="circuit">${w.meta.slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>`;
       html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">◀ ${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'}</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
       const cur = durationFor(t);
       const opts = [...new Set([10, 15, 20, 30, state.settings.duration])].sort((x, y) => x - y);
@@ -222,7 +222,7 @@
       <div class="big">${days === 1 ? 'מחר' : `בעוד ${days} ימים`}</div>
       <p class="lbl">התוכנית מתחילה ב${fmtDate(start)}</p>
       <p class="muted small">${firstDay.icon} ${state.settings.duration} דקות · ${slots.length} תרגילים · רמת ${P.LEVELS[state.settings.level]}</p>
-      <ol class="circuit">${slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>
+      <ol class="circuit">${slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>
       <div class="btn-row">
         <button class="btn primary" id="btn-preview-first">מה מחכה לי</button>
         <button class="btn secondary" id="btn-start-now">להתאמן כבר היום</button>
@@ -322,7 +322,7 @@
       <div class="card">
         <h3>חמשת התרגילים</h3>
         <p class="muted small">אותם חמישה תרגילים בכל אימון. מה שמשתנה זו הגרסה שמתאימה לרמה שלכם, וזמני העבודה שעולים לאורך המחזור. ככה לא צריך לזכור כלום — רק להתחיל.</p>
-        <ol class="circuit big">${slots.map((s) => `<li><span class="ci">${s.icon}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)} · ${esc(s.why)}</span></div></li>`).join('')}</ol>
+        <ol class="circuit big">${slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)} · ${esc(s.why)}</span></div></li>`).join('')}</ol>
         <p class="muted small">ברמת ${P.LEVELS[state.settings.level]} מתחילים ב‑${p.work}″ עבודה ו‑${p.rest}″ מנוחה, ומשם העומס עולה בכל שבוע במחזור. ניתן לשנות רמה בהגדרות.</p>
       </div>
       <div class="card">

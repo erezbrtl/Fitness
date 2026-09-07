@@ -6,15 +6,15 @@
 
   /* החמישייה הקבועה — דחיפה, רגליים, ליבה סטטית, בטן, ושרשרת אחורית */
   const CIRCUIT = [
-    { key:'push',   icon:'💪', label:'שכיבות סמיכה', why:'חזה, כתפיים וזרוע אחורית',
+    { key:'push',   label:'שכיבות סמיכה', why:'חזה, כתפיים וזרוע אחורית',
       levels:['knee_pushup', 'pushup', 'diamond_pushup'] },
-    { key:'legs',   icon:'🦵', label:'סקוואט', why:'ירך קדמית וישבן — קבוצת השרירים הגדולה בגוף',
+    { key:'legs',   label:'סקוואט', why:'ירך קדמית וישבן — קבוצת השרירים הגדולה בגוף',
       levels:['squat', 'wall_less_sit', 'jump_squat'] },
-    { key:'plank',  icon:'🧱', label:'פלאנק', why:'כל הליבה בהחזקה אחת, כולל הגב התחתון',
+    { key:'plank',  label:'פלאנק', why:'כל הליבה בהחזקה אחת, כולל הגב התחתון',
       levels:['plank', 'shoulder_taps', 'plank_reach'] },
-    { key:'abs',    icon:'🎯', label:'בטן', why:'שרירי הבטן בתנועה, משלים את הפלאנק הסטטי',
+    { key:'abs',    label:'בטן', why:'שרירי הבטן בתנועה, משלים את הפלאנק הסטטי',
       levels:['crunch', 'leg_raise', 'v_up'] },
-    { key:'glutes', icon:'🌉', label:'גשר ישבן', why:'ישבן וירך אחורית — מאזן את הצד הקדמי של הגוף',
+    { key:'glutes', label:'גשר ישבן', why:'ישבן וירך אחורית — מאזן את הצד הקדמי של הגוף',
       levels:['glute_bridge', 'sl_bridge', 'bridge_walk'] },
   ];
 
