@@ -4,53 +4,72 @@
   const EX = window.EXERCISES;
   const byId = (id) => EX.find((e) => e.id === id);
 
-  /* החמישייה הקבועה — דחיפה, רגליים, ליבה סטטית, בטן, ושרשרת אחורית */
+  /* שמונת התרגילים הקבועים — אותה סדרה בכל אימון, שלוש סטים לכל אחד.
+     לכל תרגיל יעד משלו: מספר חזרות, או שניות החזקה בתרגילים הסטטיים. */
   const CIRCUIT = [
-    { key:'push',   label:'שכיבות סמיכה', why:'חזה, כתפיים וזרוע אחורית',
-      levels:['knee_pushup', 'pushup', 'diamond_pushup'] },
-    { key:'legs',   label:'סקוואט', why:'ירך קדמית וישבן — קבוצת השרירים הגדולה בגוף',
-      levels:['squat', 'wall_less_sit', 'jump_squat'] },
-    { key:'plank',  label:'פלאנק', why:'כל הליבה בהחזקה אחת, כולל הגב התחתון',
-      levels:['plank', 'shoulder_taps', 'plank_reach'] },
-    { key:'abs',    label:'בטן', why:'שרירי הבטן בתנועה, משלים את הפלאנק הסטטי',
-      levels:['crunch', 'leg_raise', 'v_up'] },
-    { key:'glutes', label:'גשר ישבן', why:'ישבן וירך אחורית — מאזן את הצד הקדמי של הגוף',
-      levels:['glute_bridge', 'sl_bridge', 'bridge_walk'] },
+    { key:'push',   id:'pushup',           reps:12, label:'שכיבות סמיכה', why:'חזה, כתפיים וזרוע אחורית' },
+    { key:'legs',   id:'squat',            reps:15, label:'סקוואט',        why:'ירך קדמית וישבן — קבוצת השרירים הגדולה בגוף' },
+    { key:'plank',  id:'plank',            hold:45, label:'פלאנק',         why:'כל הליבה בהחזקה אחת, כולל הגב התחתון' },
+    { key:'lunge',  id:'fwd_lunge',        reps:12, label:'לאנג׳',         why:'רגל אחת בכל פעם — שיווי משקל וחוזק לא סימטרי' },
+    { key:'cardio', id:'mountain_climber', hold:30, label:'מטפסי הרים',    why:'מעלה דופק ועובד על הליבה בו־זמנית' },
+    { key:'abs',    id:'leg_raise',        reps:12, label:'הרמות רגליים',  why:'הבטן התחתונה, שהפלאנק הסטטי פחות מגיע אליה' },
+    { key:'glutes', id:'glute_bridge',     reps:15, label:'גשר ישבן',      why:'ישבן וירך אחורית — מאזן את הצד הקדמי של הגוף' },
+    { key:'back',   id:'superman',         reps:12, label:'סופרמן',        why:'הגב התחתון והעליון — הצד שיושב מול מחשב כל היום' },
   ];
+
+  /* כמה שניות לוקחת חזרה אחת, לפי התרגיל. מכאן נגזר חלון הזמן שמוצג בשעון. */
+  const TEMPO = { pushup:3, squat:2.5, fwd_lunge:3, leg_raise:3, glute_bridge:2.5, superman:2.5 };
 
   const WARMUP = ['march', 'arm_circles', 'slow_squat'];
   const COOLDOWN = ['chest_open', 'hamstring_seated', 'child_pose'];
 
   const DAY_TYPES = {
     workout: { key:'workout', name:'האימון היומי', short:'אימון', icon:'💪', color:'#3b82f6',
-      focus:'חמישה תרגילים, כל הגוף', mode:'circuit' },
+      focus:'שמונה תרגילים, כל הגוף', mode:'circuit' },
     rest: { key:'rest', name:'יום מנוחה', short:'מנוחה', icon:'😴', color:'#64748b',
       focus:'התאוששות. הליכה קלה ומתיחות אם בא לכם', mode:'rest' },
   };
 
-  /* זמני עבודה ומנוחה לפי רמה (שניות) */
+  /* מנוחות לפי רמה. זמן העבודה עצמו נגזר מהיעד של כל תרגיל. */
   const PARAMS = {
-    1: { work:30, rest:10, roundRest:45 },
-    2: { work:40, rest:10, roundRest:40 },
-    3: { work:45, rest:10, roundRest:30 },
+    1: { rest:15, roundRest:60 },
+    2: { rest:10, roundRest:40 },
+    3: { rest:10, roundRest:30 },
   };
 
-  /* מחזור של 4 שבועות — העומס עולה בהדרגה */
+  /* היעדים גדלים עם הרמה ולאורך המחזור. ברמה בינונית בשבוע הראשון
+     היעדים הם בדיוק אלה שבתוכנית: 12, 15, 45״, 12, 30״, 12, 15, 12. */
+  const LEVEL_F = { 1: 0.7, 2: 1, 3: 1.3 };
   const WEEK_MODS = {
-    1: { work:0,  rest:0,  label:'שבוע בסיס' },
-    2: { work:5,  rest:0,  label:'עלייה בעומס' },
-    3: { work:10, rest:-5, label:'עומס גבוה' },
-    4: { work:10, rest:-5, label:'שבוע שיא' },
+    1: { f: 1,    rest:0,  label:'שבוע בסיס' },
+    2: { f: 1.08, rest:0,  label:'עלייה בעומס' },
+    3: { f: 1.15, rest:-5, label:'עומס גבוה' },
+    4: { f: 1.15, rest:-5, label:'שבוע שיא' },
   };
 
   const LEVELS = { 1:'מתחיל', 2:'בינוני', 3:'מתקדם' };
   const READY = 10;   // שניות היכון לפני כל תרגיל בסבב — זמן להיכנס לתנוחה
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-  /* התרגילים של הרמה הנוכחית */
-  function circuitFor(level) {
-    const l = clamp(level || 1, 1, 3);
-    return CIRCUIT.map((c) => Object.assign({}, c, { ex: byId(c.levels[l - 1]) || byId(c.levels[0]) }));
+  const round5 = (n) => Math.max(15, Math.round(n / 5) * 5);
+
+  /* התרגילים עם היעד שלהם ברמה ובשבוע הנתונים */
+  function circuitFor(level, week) {
+    const f = LEVEL_F[clamp(level || 1, 1, 3)] * WEEK_MODS[clamp(week || 1, 1, 4)].f;
+    return CIRCUIT.map((c) => {
+      const ex = byId(c.id);
+      const slot = Object.assign({}, c, { ex });
+      if (c.hold) {
+        slot.hold = round5(c.hold * f);
+        slot.work = slot.hold;
+        slot.target = `${slot.hold} שניות`;
+      } else {
+        slot.reps = Math.max(4, Math.round(c.reps * f));
+        slot.work = round5(slot.reps * (TEMPO[c.id] || 3));
+        slot.target = `${slot.reps} חזרות`;
+      }
+      return slot;
+    });
   }
 
   /**
@@ -69,14 +88,15 @@
     const mainSec = total - warmSec - coolSec - prepSec;
 
     const p = PARAMS[level];
-    const work = p.work + mods.work;
     const rest = Math.max(5, p.rest + mods.rest);
     const roundRest = p.roundRest;
 
-    const slots = circuitFor(level);
+    const slots = circuitFor(level, week);
     const exercises = slots.map((s) => s.ex);
-    const roundTime = exercises.length * (READY + work) + (exercises.length - 1) * rest;
-    let rounds = clamp(Math.floor((mainSec + roundRest) / (roundTime + roundRest)), 1, 8);
+    const workSum = slots.reduce((a, s) => a + s.work, 0);
+    const roundTime = slots.length * READY + workSum + (slots.length - 1) * rest;
+    // באימון קצר ברמה גבוהה אפילו סבב אחד ארוך מדי — אז בונים סבב חלקי בלבד
+    let rounds = clamp(Math.floor((mainSec + roundRest) / (roundTime + roundRest)), 0, 8);
 
     const segments = [];
     const push = (s) => segments.push(s);
@@ -88,26 +108,31 @@
     const warmRemainder = warmSec - warmEach * warmList.length;
     warmList.forEach((ex, i) => push({ kind:'warmup', ex, dur: warmEach + (i === warmList.length - 1 ? warmRemainder : 0), phase:'חימום', idx:i + 1, of:warmList.length }));
 
-    // סבבים מלאים, ואם נשאר זמן — סבב סיום חלקי
-    let usedMain = rounds * roundTime + (rounds - 1) * roundRest;
+    // סבבים מלאים, ואם נשאר זמן — סבב סיום חלקי. כל תרגיל תורם את הזמן שלו,
+    // ולכן סופרים תרגיל־תרגיל במקום להכפיל בזמן עבודה אחיד.
+    let usedMain = rounds ? rounds * roundTime + (rounds - 1) * roundRest : 0;
     let leftover = Math.max(0, mainSec - usedMain);
-    let finisher = 0;
-    if (leftover >= roundRest + READY + work) {
-      finisher = clamp(Math.floor((leftover - roundRest + rest) / (READY + work + rest)), 1, exercises.length);
-      usedMain += roundRest + finisher * (READY + work) + (finisher - 1) * rest;
-      leftover = Math.max(0, mainSec - usedMain);
+    let finisher = 0, finSec = 0;
+    for (let i = 0; i < slots.length; i++) {
+      const add = (i ? rest : (rounds ? roundRest : 0)) + READY + slots[i].work;
+      if (finSec + add > leftover) break;
+      finSec += add; finisher = i + 1;
     }
+    if (!rounds && !finisher) finisher = 1, finSec = READY + slots[0].work;   // תמיד לפחות תרגיל אחד
+    if (finisher) { usedMain += finSec; leftover = Math.max(0, mainSec - usedMain); }
+
     const totalRounds = rounds + (finisher ? 1 : 0);
     for (let rd = 1; rd <= totalRounds; rd++) {
-      const isFin = finisher && rd === totalRounds;
-      const list = isFin ? exercises.slice(0, finisher) : exercises;
+      const isFin = finisher && rounds && rd === totalRounds;
+      const list = (finisher && rd === totalRounds) ? slots.slice(0, finisher) : slots;
       const phase = isFin ? 'סבב סיום' : 'עיקר';
-      list.forEach((ex, i) => {
-        push({ kind:'ready', ex, dur:READY, phase, round:rd, rounds:totalRounds, idx:i + 1, of:list.length });
-        push({ kind:'work', ex, dur:work, phase, round:rd, rounds:totalRounds, idx:i + 1, of:list.length });
-        if (i < list.length - 1) push({ kind:'rest', ex:null, dur:rest, phase, round:rd, rounds:totalRounds, next:list[i + 1] });
+      list.forEach((slot, i) => {
+        const common = { ex:slot.ex, phase, round:rd, rounds:totalRounds, idx:i + 1, of:list.length, target:slot.target, reps:slot.reps, hold:slot.hold };
+        push(Object.assign({ kind:'ready', dur:READY }, common));
+        push(Object.assign({ kind:'work', dur:slot.work }, common));
+        if (i < list.length - 1) push({ kind:'rest', ex:null, dur:rest, phase, round:rd, rounds:totalRounds, next:list[i + 1].ex, nextTarget:list[i + 1].target });
       });
-      if (rd < totalRounds) push({ kind:'roundrest', ex:null, dur:roundRest, phase:'עיקר', round:rd, rounds:totalRounds, next:exercises[0] });
+      if (rd < totalRounds) push({ kind:'roundrest', ex:null, dur:roundRest, phase:'עיקר', round:rd, rounds:totalRounds, next:slots[0].ex, nextTarget:slots[0].target });
     }
 
     const coolList = COOLDOWN.map(byId);
@@ -123,7 +148,7 @@
         dayType:'workout', name:DAY_TYPES.workout.name, icon:DAY_TYPES.workout.icon,
         color:DAY_TYPES.workout.color, focus:DAY_TYPES.workout.focus,
         level, levelName:LEVELS[level], week, weekLabel:mods.label,
-        work, rest, ready:READY, roundRest, rounds:totalRounds, finisher, slots, exercises,
+        rest, ready:READY, roundRest, rounds:totalRounds, finisher, slots, exercises, roundTime,
         warmup:warmList, cooldown:coolList, plannedSec, durationMin: Math.round(plannedSec / 60),
       },
     };

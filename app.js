@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '2.9.1';
+  const APP_VERSION = '3.0.0';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -157,7 +157,7 @@
     if (status === 'done') html += `<div class="done-badge">✓ הושלם</div>`;
     if (t < t0) html += `<p class="muted small">התאמנתם לפני תחילת התוכנית — כל הכבוד. המחזור הרשמי מתחיל ב${fmtDate(t0)}.</p>`;
     if (w) {
-      html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.finisher ? `${w.meta.rounds - 1} סבבים + סבב סיום` : `${w.meta.rounds} סבבים`}</span><span class="tag">⚡ ${w.meta.ready}″ היכון · ${w.meta.work}″ עבודה · ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
+      html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.finisher ? `${w.meta.rounds - 1} סבבים + סבב סיום` : `${w.meta.rounds} סבבים`}</span><span class="tag">⚡ ${w.meta.slots.length} תרגילים · ${w.meta.ready}″ היכון · ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
       html += `<ol class="circuit">${w.meta.slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>`;
       html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">◀ ${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'}</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
       const cur = durationFor(t);
@@ -313,17 +313,17 @@
 
   /* ---------- תוכנית ---------- */
   function renderPlan() {
-    const slots = P.circuitFor(state.settings.level);
+    const slots = P.circuitFor(state.settings.level, weekInfo(today()).week);
     const map = scheduleForDays();
     const t = today();
     const p = P.PARAMS[state.settings.level];
 
     $('plan-list').innerHTML = `
       <div class="card">
-        <h3>חמשת התרגילים</h3>
-        <p class="muted small">אותם חמישה תרגילים בכל אימון. מה שמשתנה זו הגרסה שמתאימה לרמה שלכם, וזמני העבודה שעולים לאורך המחזור. ככה לא צריך לזכור כלום — רק להתחיל.</p>
-        <ol class="circuit big">${slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)} · ${esc(s.why)}</span></div></li>`).join('')}</ol>
-        <p class="muted small">ברמת ${P.LEVELS[state.settings.level]} מתחילים ב‑${p.work}″ עבודה ו‑${p.rest}″ מנוחה, ומשם העומס עולה בכל שבוע במחזור. ניתן לשנות רמה בהגדרות.</p>
+        <h3>שמונת התרגילים</h3>
+        <p class="muted small">אותם שמונה תרגילים בכל אימון, שלושה סבבים של כל אחד. מה שמשתנה זה היעד — כמה חזרות או כמה שניות — שעולה עם הרמה ולאורך המחזור. ככה לא צריך לזכור כלום, רק להתחיל.</p>
+        <ol class="circuit big">${slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)} · ${esc(s.why)}</span></div><span class="dn">${esc(s.target)}</span></li>`).join('')}</ol>
+        <p class="muted small">היעדים שלמעלה הם לרמת ${P.LEVELS[state.settings.level]}. בין הסבבים ${p.rest}″ מנוחה, ומשם העומס עולה בכל שבוע במחזור. ניתן לשנות רמה בהגדרות.</p>
       </div>
       <div class="card">
         <h3>ימי האימון</h3>
@@ -343,17 +343,17 @@
     if (!w) return;
     const m = w.meta;
     $('pv-title').textContent = `${m.icon} ${m.name}`;
-    const row = (ex, dur, i) => `<div class="pv-ex" tabindex="0"><span class="num">${i + 1}</span><div class="body"><b dir="ltr">${esc(ex.en)}</b><span>${esc(ex.name)} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span><div class="how"><ol class="steps">${ex.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(ex.tip)}</p></div></div><span class="dur">${dur}″</span></div>`;
+    const row = (ex, dur, i, target) => `<div class="pv-ex" tabindex="0"><span class="num">${i + 1}</span><div class="body"><b dir="ltr">${esc(ex.en)}</b><span>${target ? `<b class="tgt">${esc(target)}</b> · ` : ''}${esc(ex.name)} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span><div class="how"><ol class="steps">${ex.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(ex.tip)}</p></div></div><span class="dur">${dur}″</span></div>`;
     $('pv-body').innerHTML = `
       <div class="pv-summary">
         <div><b>${m.durationMin}</b><span>דקות</span></div>
         <div><b>${m.rounds}</b><span>סבבים</span></div>
-        <div><b>${m.work}″</b><span>עבודה</span></div>
+        <div><b>${m.slots.length}</b><span>תרגילים</span></div>
         <div><b>${m.rest}″</b><span>מנוחה</span></div>
       </div>
       <p class="muted small">${esc(m.focus)} · רמה: ${m.levelName} · שבוע ${m.week} (${m.weekLabel}) · ${fmtDate(dateStr)}</p>
       <div class="pv-section"><h3>חימום <small>${m.warmup.length} תרגילים</small></h3>${w.segments.filter((s) => s.kind === 'warmup').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
-      <div class="pv-section"><h3>עיקר האימון <small>${m.finisher ? `${m.rounds - 1} סבבים מלאים + סבב סיום של ${m.finisher} תרגילים` : `${m.rounds} סבבים`} · ${m.ready}″ היכון לפני כל תרגיל · ${m.roundRest}″ בין סבבים</small></h3>${m.exercises.map((e, i) => row(e, m.work, i)).join('')}</div>
+      <div class="pv-section"><h3>עיקר האימון <small>${m.finisher ? `${m.rounds - 1} סבבים מלאים + סבב סיום של ${m.finisher} תרגילים` : `${m.rounds} סבבים`} · ${m.ready}″ היכון לפני כל תרגיל · ${m.roundRest}″ בין סבבים</small></h3>${m.slots.map((s, i) => row(s.ex, s.work, i, s.target)).join('')}</div>
       <div class="pv-section"><h3>שחרור ומתיחות</h3>${w.segments.filter((s) => s.kind === 'cooldown').map((s, i) => row(s.ex, s.dur, i)).join('')}</div>
       <div class="sticky-bottom"><button class="btn primary block" id="pv-start">◀ התחלת אימון</button></div>`;
     $('pv-body').querySelectorAll('.pv-ex').forEach((el) => {
@@ -489,11 +489,13 @@
       $('pl-ex').textContent = s.ex.en;
       $('pl-ex').dir = 'ltr';
       $('pl-meta').textContent = `${s.ex.name} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
+      setTarget(s.target, false);
       setHow(s.ex, false);
     } else {
       $('pl-ex').textContent = s.kind === 'prep' ? 'מוכנים?' : 'מנוחה';
       $('pl-ex').dir = 'rtl';
       $('pl-meta').textContent = s.kind === 'prep' ? 'עמדו על המזרן, נשמו עמוק' : 'נשמו, שתו מים אם צריך';
+      setTarget(s.nextTarget, true);
       setHow(upcoming, true);
     }
     const next = upcoming;
@@ -538,6 +540,14 @@
   $('pl-swap').onclick = swapCurrent;
 
   const lastRound = (s) => !!(s.round && s.rounds && s.round === s.rounds);
+
+  /* היעד: מספר חזרות או שניות החזקה. בזמן מנוחה מוצג היעד של התרגיל הבא. */
+  function setTarget(text, isNext) {
+    const el = $('pl-target');
+    el.hidden = !text;
+    el.textContent = text ? (isNext ? `הבא: ${text}` : text) : '';
+    el.classList.toggle('next', !!isNext);
+  }
 
   function setHow(ex, upcoming) {
     $('pl-steps').innerHTML = ex ? ex.steps.map((t) => `<li>${esc(t)}</li>`).join('') : '';
