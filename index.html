@@ -191,12 +191,15 @@
         <div class="ex-name" id="pl-ex"></div>
         <div class="ex-meta" id="pl-meta"></div>
         <button class="swap-btn" id="pl-swap" hidden>🔁 החלפת תרגיל</button>
-        <div class="timer-ring">
-          <svg viewBox="0 0 120 120">
-            <circle class="ring-bg" cx="60" cy="60" r="54" />
-            <circle class="ring-fg" id="pl-ring" cx="60" cy="60" r="54" />
-          </svg>
-          <div class="timer-num" id="pl-time">00</div>
+        <div class="fig-row">
+          <div class="timer-ring">
+            <svg viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="54" />
+              <circle class="ring-fg" id="pl-ring" cx="60" cy="60" r="54" />
+            </svg>
+            <div class="timer-num" id="pl-time">00</div>
+          </div>
+          <div class="ex-fig" id="pl-fig-wrap" hidden><svg id="pl-fig" aria-hidden="true"></svg></div>
         </div>
         <div class="side-hint" id="pl-side" hidden>🔁 החליפו צד!</div>
         <ol class="steps" id="pl-steps"></ol>
@@ -253,6 +256,7 @@
 
   <script src="exercises.js"></script>
   <script src="program.js"></script>
+  <script src="figures.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

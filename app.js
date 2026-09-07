@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '2.7.1';
+  const APP_VERSION = '2.8.0';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -539,7 +539,18 @@
 
   const lastRound = (s) => !!(s.round && s.rounds && s.round === s.rounds);
 
+  /* ההנפשה שליד שעון העצר. בזמן מנוחה מוצג התרגיל הבא, מעומעם. */
+  function setFigure(ex, upcoming) {
+    const wrap = $('pl-fig-wrap'), svg = $('pl-fig');
+    const ok = !!(ex && window.FIGURES && FIGURES.has(ex.id) && FIGURES.play(svg, ex.id));
+    wrap.hidden = !ok;
+    wrap.classList.toggle('upcoming', ok && !!upcoming);
+    if (ok) FIGURES.setPaused(svg, player.paused);
+    else if (window.FIGURES) FIGURES.stop(svg);
+  }
+
   function setHow(ex, upcoming) {
+    setFigure(ex, upcoming);
     $('pl-steps').innerHTML = ex ? ex.steps.map((t) => `<li>${esc(t)}</li>`).join('') : '';
     $('pl-tip').textContent = ex ? ex.tip : '';
     $('pl-tip').hidden = !ex;
@@ -588,6 +599,7 @@
     player.paused = !player.paused;
     $('screen-player').classList.toggle('paused', player.paused);
     $('pl-pause').textContent = player.paused ? '◀' : '⏸';
+    if (window.FIGURES) FIGURES.setPaused($('pl-fig'), player.paused);
     if (player.paused) { player.pausedAt = performance.now(); releaseWake(); }
     else { player.segStart += performance.now() - player.pausedAt; requestWake(); ensureAudio(); }
   }
@@ -603,6 +615,7 @@
 
   function finishWorkout(completed) {
     clearInterval(player.timer); player.timer = null; player.active = false; releaseWake();
+    if (window.FIGURES) FIGURES.stop($('pl-fig'));
     const w = player.workout; const wi = weekInfo(player.date);
     const doneSec = completed ? w.meta.plannedSec : player.doneSec;
     const minRecord = 60; // פחות מדקה לא נרשם

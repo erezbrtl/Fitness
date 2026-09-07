@@ -1,7 +1,7 @@
 /* Service Worker — עבודה מלאה ללא אינטרנט, ועדכון בשליטת המשתמש */
-const VERSION = 'calisthenics-v2.7.1';
+const VERSION = 'calisthenics-v2.8.0';
 const ASSETS = [
-  './', './index.html', './styles.css', './app.js', './program.js', './exercises.js',
+  './', './index.html', './styles.css', './app.js', './program.js', './exercises.js', './figures.js',
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-maskable.svg', './icons/icon-192.png',
   './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './icons/icon-square.svg',
 ];
