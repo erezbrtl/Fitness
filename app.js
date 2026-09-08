@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '3.3.0';
+  const APP_VERSION = '3.4.0';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -270,6 +270,7 @@
 
   /* התאמת רמה: הנוכחות אומרת אם התמדתם, דירוג המאמץ אומר אם זו הרמה הנכונה */
   function maybeAdjustLevel(wi) {
+    if (resumePending) return;   // הצעת ההמשך קודמת
     const lvl = state.settings.level;
 
     // אות מהיר: שלושת האימונים המדורגים האחרונים סומנו "קשה מדי"
@@ -447,16 +448,47 @@
   async function requestWake() { if (!state.settings.wake || !('wakeLock' in navigator)) return; try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} }
   function releaseWake() { try { wakeLock && wakeLock.release(); } catch {} wakeLock = null; }
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible' || !player.active || player.paused) return;
+    if (document.visibilityState !== 'visible') { saveResume(); return; }
+    if (!player.active || player.paused) return;
     requestWake(); tick();
   });
+
+  /* ---------- שחזור אימון שנקטע ----------
+     אם האפליקציה נסגרה באמצע אימון (שיחה נכנסת, המערכת פינתה זיכרון, סגירה בטעות),
+     נקודת העצירה נשמרת ואפשר להמשיך ממנה. אחרי שלוש שעות זה כבר לא אותו אימון. */
+  const RESUME_KEY = 'calisthenics.home.resume';
+  const RESUME_MAX_AGE = 3 * 3600 * 1000;
+  let resumePending = false;
+
+  function saveResume() {
+    if (!player.active || !player.workout) return;
+    const m = player.workout.meta;
+    const ref = player.paused ? player.pausedAt : performance.now();
+    try {
+      localStorage.setItem(RESUME_KEY, JSON.stringify({
+        date: player.date, level: m.level, week: m.week, durationMin: m.durationMin,
+        idx: player.idx, elapsed: Math.max(0, Math.round((ref - player.segStart) / 1000)), at: Date.now(),
+      }));
+    } catch {}
+  }
+  function clearResume() { try { localStorage.removeItem(RESUME_KEY); } catch {} }
+  function readResume() {
+    try {
+      const r = JSON.parse(localStorage.getItem(RESUME_KEY) || 'null');
+      if (!r || Date.now() - r.at > RESUME_MAX_AGE) return null;
+      // בונים בדיוק את האימון שרץ אז, לא את זה שההגדרות הנוכחיות היו מייצרות
+      const w = P.buildWorkout({ level: r.level, week: r.week, durationMin: r.durationMin });
+      if (!(r.idx >= 0 && r.idx < w.segments.length)) return null;
+      return { rec: r, workout: w };
+    } catch { return null; }
+  }
 
   /* ---------- נגן ---------- */
   const player = { active: false, paused: false, workout: null, idx: 0, segStart: 0, pausedAt: 0, timer: null, lastWhole: -1, sideDone: false, doneSec: 0, date: null, dayType: null };
   const RING = 2 * Math.PI * 54;
 
-  function startWorkout(dateStr, force) {
-    const w = workoutFor(dateStr, force);
+  function startWorkout(dateStr, force, resume) {
+    const w = (resume && resume.workout) || workoutFor(dateStr, force);
     if (!w) return;
     unlockAudio();
     hideUpdateBar();
@@ -465,7 +497,8 @@
     $('pl-total').textContent = fmtTime(w.meta.plannedSec);
     show('player');
     requestWake();
-    enterSegment(0);
+    if (resume) enterSegment(resume.rec.idx, { silent: true, elapsed: resume.rec.elapsed });
+    else enterSegment(0);
     player.timer = setInterval(tick, 200);
   }
   function segElapsedBefore(i) { let a = 0; for (let k = 0; k < i; k++) a += player.workout.segments[k].dur; return a; }
@@ -517,6 +550,7 @@
       }
     }
     renderTime(s.dur);
+    saveResume();
   }
 
   const lastRound = (s) => !!(s.round && s.rounds && s.round === s.rounds);
@@ -590,6 +624,7 @@
     $('pl-pause').textContent = player.paused ? '◀' : '⏸';
     if (player.paused) { player.pausedAt = performance.now(); releaseWake(); }
     else { player.segStart += performance.now() - player.pausedAt; requestWake(); ensureAudio(); }
+    saveResume();
   }
   $('pl-pause').onclick = togglePause;
   $('pl-skip').onclick = () => { if (player.active) enterSegment(player.idx + 1); };
@@ -603,6 +638,7 @@
 
   function finishWorkout(completed) {
     clearInterval(player.timer); player.timer = null; player.active = false; releaseWake();
+    clearResume();
     const w = player.workout; const wi = weekInfo(player.date);
     const doneSec = completed ? w.meta.plannedSec : player.doneSec;
     const minRecord = 60; // פחות מדקה לא נרשם
@@ -947,5 +983,18 @@
   }
 
   /* ---------- הפעלה ---------- */
+  const pendingWorkout = readResume();
+  resumePending = !!pendingWorkout;
   show('home');
+  if (pendingWorkout) {
+    const { rec, workout } = pendingWorkout;
+    const before = workout.segments.slice(0, rec.idx).reduce((t, s) => t + s.dur, 0) + rec.elapsed;
+    const left = Math.max(0, Math.round(workout.meta.plannedSec - before));
+    confirmModal(`יש אימון שנקטע באמצע — נשארו בו ${fmtTime(left)}. להמשיך מאיפה שהפסקת?`)
+      .then((ok) => {
+        resumePending = false;
+        if (ok) startWorkout(rec.date, true, pendingWorkout);
+        else { clearResume(); renderHome(); }
+      });
+  }
 })();

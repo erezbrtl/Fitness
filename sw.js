@@ -1,5 +1,5 @@
 /* Service Worker — עבודה מלאה ללא אינטרנט, ועדכון בשליטת המשתמש */
-const VERSION = 'calisthenics-v3.3.0';
+const VERSION = 'calisthenics-v3.4.0';
 const EX_IMAGES = ['pushup', 'squat', 'plank', 'fwd_lunge', 'mountain_climber', 'leg_raise', 'glute_bridge', 'superman']
   .map((id) => `./img/${id}.webp`);
 const ASSETS = [
