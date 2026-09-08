@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '3.2.0';
+  const APP_VERSION = '3.3.0';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
@@ -158,7 +158,7 @@
     if (t < t0) html += `<p class="muted small">התאמנתם לפני תחילת התוכנית — כל הכבוד. המחזור הרשמי מתחיל ב${fmtDate(t0)}.</p>`;
     if (w) {
       html += `<div><span class="tag">⏱ ${w.meta.durationMin} דק׳</span><span class="tag">🔁 ${w.meta.finisher ? `${w.meta.rounds - 1} סבבים + סבב סיום` : `${w.meta.rounds} סבבים`}</span><span class="tag">⚡ ${w.meta.slots.length} תרגילים · ${w.meta.ready}″ היכון · ${w.meta.rest}″ מנוחה</span><span class="tag">📈 ${P.LEVELS[w.meta.level]} · שבוע ${wi.week}</span></div>`;
-      html += `<ol class="circuit">${w.meta.slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>`;
+      html += `<ol class="circuit">${w.meta.slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b>${esc(s.ex.name)}</b><span dir="ltr">${esc(s.ex.en)}</span></div></li>`).join('')}</ol>`;
       html += `<div class="btn-row"><button class="btn primary" id="btn-start-today">◀ ${status === 'done' ? 'אימון נוסף' : 'התחלת אימון'}</button><button class="btn secondary" id="btn-preview-today">פירוט</button></div>`;
       const cur = durationFor(t);
       const opts = [...new Set([10, 15, 20, 30, state.settings.duration])].sort((x, y) => x - y);
@@ -222,7 +222,7 @@
       <div class="big">${days === 1 ? 'מחר' : `בעוד ${days} ימים`}</div>
       <p class="lbl">התוכנית מתחילה ב${fmtDate(start)}</p>
       <p class="muted small">${firstDay.icon} ${state.settings.duration} דקות · ${slots.length} תרגילים · רמת ${P.LEVELS[state.settings.level]}</p>
-      <ol class="circuit">${slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)}</span></div></li>`).join('')}</ol>
+      <ol class="circuit">${slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b>${esc(s.ex.name)}</b><span dir="ltr">${esc(s.ex.en)}</span></div></li>`).join('')}</ol>
       <div class="btn-row">
         <button class="btn primary" id="btn-preview-first">מה מחכה לי</button>
         <button class="btn secondary" id="btn-start-now">להתאמן כבר היום</button>
@@ -322,7 +322,7 @@
       <div class="card">
         <h3>שמונת התרגילים</h3>
         <p class="muted small">אותם שמונה תרגילים בכל אימון, שלושה סבבים של כל אחד. מה שמשתנה זה היעד — כמה חזרות או כמה שניות — שעולה עם הרמה ולאורך המחזור. ככה לא צריך לזכור כלום, רק להתחיל.</p>
-        <ol class="circuit big">${slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b dir="ltr">${esc(s.ex.en)}</b><span>${esc(s.ex.name)} · ${esc(s.why)}</span></div><span class="dn">${esc(s.target)}</span></li>`).join('')}</ol>
+        <ol class="circuit big">${slots.map((s, i) => `<li><span class="ci">${i + 1}</span><div class="cb"><b>${esc(s.ex.name)}</b><span><span dir="ltr">${esc(s.ex.en)}</span> · ${esc(s.why)}</span></div><span class="dn">${esc(s.target)}</span></li>`).join('')}</ol>
         <p class="muted small">היעדים שלמעלה הם לרמת ${P.LEVELS[state.settings.level]}. בין הסבבים ${p.rest}″ מנוחה, ומשם העומס עולה בכל שבוע במחזור. ניתן לשנות רמה בהגדרות.</p>
       </div>
       <div class="card">
@@ -343,7 +343,7 @@
     if (!w) return;
     const m = w.meta;
     $('pv-title').textContent = `${m.icon} ${m.name}`;
-    const row = (ex, dur, i, target) => `<div class="pv-ex" tabindex="0"><span class="num">${i + 1}</span><div class="body"><b dir="ltr">${esc(ex.en)}</b><span>${target ? `<b class="tgt">${esc(target)}</b> · ` : ''}${esc(ex.name)} · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span><div class="how"><ol class="steps">${ex.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(ex.tip)}</p></div></div><span class="dur">${dur}″</span></div>`;
+    const row = (ex, dur, i, target) => `<div class="pv-ex" tabindex="0"><span class="num">${i + 1}</span><div class="body"><b>${esc(ex.name)}</b><span>${target ? `<b class="tgt">${esc(target)}</b> · ` : ''}<span dir="ltr">${esc(ex.en)}</span> · ${esc(ex.muscles)}${ex.sides ? ' · חצי זמן לכל צד' : ''}</span><div class="how"><ol class="steps">${ex.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol><p class="tip">${esc(ex.tip)}</p></div></div><span class="dur">${dur}″</span></div>`;
     $('pv-body').innerHTML = `
       <div class="pv-summary">
         <div><b>${m.durationMin}</b><span>דקות</span></div>
@@ -485,9 +485,9 @@
     $('pl-side').hidden = true;
     const upcoming = s.next || (segs[i + 1] && segs[i + 1].ex) || (segs[i + 2] && segs[i + 2].ex) || null;
     if (s.ex) {
-      $('pl-ex').textContent = s.ex.en;
-      $('pl-ex').dir = 'ltr';
-      $('pl-meta').textContent = `${s.ex.name} · ${s.ex.muscles}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
+      $('pl-ex').textContent = s.ex.name;
+      $('pl-ex').dir = 'rtl';
+      $('pl-meta').innerHTML = `<span dir="ltr">${esc(s.ex.en)}</span> · ${esc(s.ex.muscles)}${s.ex.sides ? ' · החליפו צד באמצע' : ''}`;
       setTarget(s.target, false);
       setHow(s.ex, false);
     } else {
@@ -498,7 +498,7 @@
       setHow(upcoming, true);
     }
     const next = upcoming;
-    $('pl-next').innerHTML = next && next !== s.ex ? `הבא: <b dir="ltr">${esc(next.en)}</b>` : (i === segs.length - 1 ? 'זהו — התרגיל האחרון!' : '');
+    $('pl-next').innerHTML = next && next !== s.ex ? `הבא: <b>${esc(next.name)}</b>` : (i === segs.length - 1 ? 'זהו — התרגיל האחרון!' : '');
     $('pl-next').hidden = !$('pl-next').innerHTML;
     if (!opts.silent) {
       if (s.kind === 'work') {
