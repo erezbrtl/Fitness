@@ -1,7 +1,9 @@
 /* Service Worker — עבודה מלאה ללא אינטרנט, ועדכון בשליטת המשתמש */
-const VERSION = 'calisthenics-v3.4.0';
-const EX_IMAGES = ['pushup', 'squat', 'plank', 'fwd_lunge', 'mountain_climber', 'leg_raise', 'glute_bridge', 'superman']
-  .map((id) => `./img/${id}.webp`);
+const VERSION = 'calisthenics-v3.5.0';
+const EX_IMAGES = [
+  'pushup', 'squat', 'plank', 'fwd_lunge', 'mountain_climber', 'leg_raise', 'glute_bridge', 'superman',
+  'march', 'arm_circles', 'slow_squat', 'chest_open', 'hamstring_seated', 'child_pose',
+].map((id) => `./img/${id}.webp`);
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './program.js', './exercises.js', ...EX_IMAGES,
   './manifest.webmanifest', './icons/icon.svg', './icons/icon-maskable.svg', './icons/icon-192.png',

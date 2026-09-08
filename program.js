@@ -20,11 +20,12 @@
   /* כמה שניות לוקחת חזרה אחת, לפי התרגיל. מכאן נגזר חלון הזמן שמוצג בשעון. */
   const TEMPO = { pushup:3, squat:2.5, fwd_lunge:3, leg_raise:3, glute_bridge:2.5, superman:2.5 };
 
-  /* לשמונת התרגילים יש איור ב‑img/<id>.webp. לחימום ולשחרור אין. */
-  const hasImage = (id) => CIRCUIT.some((c) => c.id === id);
-
   const WARMUP = ['march', 'arm_circles', 'slow_squat'];
   const COOLDOWN = ['chest_open', 'hamstring_seated', 'child_pose'];
+
+  /* לכל תרגיל שהתוכנית מגישה יש איור ב‑img/<id>.webp */
+  const IMAGES = new Set([...CIRCUIT.map((c) => c.id), ...WARMUP, ...COOLDOWN]);
+  const hasImage = (id) => IMAGES.has(id);
 
   const DAY_TYPES = {
     workout: { key:'workout', name:'האימון היומי', short:'אימון', icon:'💪', color:'#3b82f6',

@@ -4,7 +4,7 @@
   const P = window.PROGRAM;
   const EX = window.EXERCISES;
   const STORE_KEY = 'calisthenics.home.v1';
-  const APP_VERSION = '3.4.0';
+  const APP_VERSION = '3.5.0';
   const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
   const DAY_SHORT = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
   const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
